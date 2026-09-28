@@ -67,6 +67,7 @@ static func build(kit: WKit, xf: Transform3D, length: float, col: Color, flags :
 	frame_col.a = 1.0
 	var g: String = flags.get("group", "")
 	var open: bool = flags.get("open", false)
+	var gd := g if open else g + "ns"   # detail that doesn't need to cast shadows (inner box does)
 	var y0 := 0.16
 	var wh := H - 0.28
 	# long sides (corrugated), outer face at hw - 0.02
@@ -74,13 +75,13 @@ static func build(kit: WKit, xf: Transform3D, length: float, col: Color, flags :
 	if not flags.get("skip_r", false):
 		# right: w = +X, u = -Z, start at z = +hl - 0.16
 		var fr := Transform3D(Basis(Vector3(0, 0, -1), Vector3.UP, Vector3(1, 0, 0)), Vector3(inset, y0, hl - 0.16))
-		corr_wall(kit, xf * fr, length - 0.32, wh, col, 0.28, 0.045, g)
+		corr_wall(kit, xf * fr, length - 0.32, wh, col, 0.28, 0.045, gd)
 	if not flags.get("skip_l", false):
 		var fl := Transform3D(Basis(Vector3(0, 0, 1), Vector3.UP, Vector3(-1, 0, 0)), Vector3(-inset, y0, -hl + 0.16))
-		corr_wall(kit, xf * fl, length - 0.32, wh, col, 0.28, 0.045, g)
+		corr_wall(kit, xf * fl, length - 0.32, wh, col, 0.28, 0.045, gd)
 	# front (blind) end: w = -Z, u = -X
 	var ff := Transform3D(Basis(Vector3(-1, 0, 0), Vector3.UP, Vector3(0, 0, -1)), Vector3(hw - 0.16, y0, -hl + 0.02))
-	corr_wall(kit, xf * ff, W - 0.32, wh, col, 0.23, 0.035, g)
+	corr_wall(kit, xf * ff, W - 0.32, wh, col, 0.23, 0.035, gd)
 	# roof panel (slightly below the top rails) + inner closure box (casts clean shadows)
 	kit.box_geo(MAT, Vector3(W - 0.14, 0.04, length - 0.2), xf * Transform3D(Basis.IDENTITY, Vector3(0, H - 0.05, 0)), col * 0.95, 0.0, g)
 	if not open:
@@ -102,7 +103,7 @@ static func build(kit: WKit, xf: Transform3D, length: float, col: Color, flags :
 		kit.box_geo(MAT, Vector3(W - 0.36, 0.16, 0.1), xf * Transform3D(Basis.IDENTITY, Vector3(0, 0.08, sz * (hl - 0.05))), frame_col, 0.0, g)
 		var th := 0.22 if sz > 0 else 0.1
 		kit.box_geo(MAT, Vector3(W - 0.36, th, 0.1), xf * Transform3D(Basis.IDENTITY, Vector3(0, H - th * 0.5, sz * (hl - 0.05))), frame_col, 0.0, g)
-	_doors(kit, xf, length, col, open, g)
+	_doors(kit, xf, length, col, open, gd)
 
 
 static func _hollow_interior(kit: WKit, xf: Transform3D, length: float, col: Color, g: String) -> void:

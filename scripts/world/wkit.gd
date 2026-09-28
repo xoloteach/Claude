@@ -441,7 +441,7 @@ func finish() -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if g == "detail" or g == "decal":
 			detail_nodes.append(mi)
-		if g == "noshadow" or g == "bg" or g == "far":
+		if g == "noshadow" or g == "bg" or g == "far" or g.ends_with("ns"):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
 	batches.clear()

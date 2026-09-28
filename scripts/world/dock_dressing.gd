@@ -85,7 +85,7 @@ static func _markings(kit: WKit, L) -> void:
 	# cross road through the yard
 	paint_line(kit, Vector3(-41.0, 0, -8.0), Vector3(8.0, 0, -8.0), 0.13, WHITE_PAINT, 2.5, 3.5)
 	kit.ground_quad("paint", Vector3(7.0, 0, -8.0), Vector2(0.4, 7.5), 0.0, WHITE_PAINT, Vector2(0, 0.05), "paint")
-	flat_text(L, "STOP", Vector3(5.8, 0, -10.0), 90.0, 0.009)
+	flat_text(L, "STOP", Vector3(5.8, 0, -10.0), -90.0, 0.009)
 	# container bay outlines + row letters
 	var rows := [[Layout.ROW_N, "A"], [Layout.ROW_M1, "B"], [Layout.ROW_M2, "C"], [Layout.ROW_S, "D"]]
 	for r in rows:

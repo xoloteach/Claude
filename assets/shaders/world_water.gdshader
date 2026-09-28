@@ -36,7 +36,7 @@ void fragment() {
 	vec3 n1 = nsample(p * wave_scale + vec2(t, t * 0.6));
 	vec3 n2 = nsample(p * wave_scale * 2.7 + vec2(-t * 1.3, t * 0.9));
 	vec3 n3 = nsample(p * wave_scale * 0.23 + vec2(t * 0.2, -t * 0.35));
-	vec2 d = (n1.xy * 0.5 + n2.xy * 0.35 + n3.xy * 0.6);
+	vec2 d = (n1.xy * 0.55 + n2.xy * 0.4 + n3.xy * 0.25);
 	float dist = length(wpos - CAMERA_POSITION_WORLD);
 	float fade = 1.0 / (1.0 + dist * 0.004);
 	d *= normal_strength * fade;
@@ -58,7 +58,7 @@ void fragment() {
 	float foam = (1.0 - smoothstep(0.0, foam_width * (0.5 + fn), dwall)) * smoothstep(0.35, 0.65, fn2);
 	float stir = 1.0 - smoothstep(0.0, 9.0, dwall);
 
-	vec3 base = mix(deep_color.rgb, shallow_color.rgb, stir * 0.6 + n3.x * 0.1);
+	vec3 base = mix(deep_color.rgb, shallow_color.rgb, stir * 0.6);
 	vec3 col = mix(base, sky_tint.rgb * 0.5, fres * 0.5);
 	col = mix(col, foam_color.rgb, foam * 0.8);
 

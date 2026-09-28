@@ -61,7 +61,7 @@ static func _ground(kit: WKit, L) -> void:
 	_rect(kit, "ground", 18.0, 66.0, 6.0, 48.0)
 	_rect(kit, "asphalt", 18.0, 66.0, 48.0, 66.0)
 	# expansion joints (multiplicative dark lines) on concrete zones
-	var jc := Color(0.55, 0.53, 0.5, 0.55)
+	var jc := Color(0.62, 0.6, 0.57, 0.45)
 	for zone in [[QUAY_X, -42.0, -64.0, 64.0, 5.0], [-42.0, 8.0, -64.0, -12.0, 6.0], [-42.0, 8.0, -4.0, 48.0, 6.0], [18.0, 64.0, 6.0, 48.0, 6.0], [18.0, 60.0, -48.0, 6.0, 7.0]]:
 		var x0: float = zone[0]
 		var x1: float = zone[1]

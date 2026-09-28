@@ -321,7 +321,7 @@ func configure_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.sky_rotation = Vector3(0.0, deg_to_rad(SKY_YAW_DEG), 0.0)
 	if env.sky and env.sky.sky_material is PanoramaSkyMaterial:
 		(env.sky.sky_material as PanoramaSkyMaterial).energy_multiplier = 1.0
-	env.background_energy_multiplier = 0.8
+	env.background_energy_multiplier = 0.65
 	sun.global_basis = Basis.looking_at(-sun_dir, Vector3.UP)
 	sun.light_color = Color(1.0, 0.7, 0.46)
 	sun.light_energy = 2.6
@@ -345,7 +345,7 @@ func configure_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.fog_sun_scatter = 0.18
 	env.fog_density = 0.0075
 	env.fog_aerial_perspective = 0.5
-	env.fog_sky_affect = 0.45
+	env.fog_sky_affect = 0.3
 	env.fog_height = 3.0
 	env.fog_height_density = 0.025
 	env.glow_enabled = true
@@ -396,6 +396,52 @@ func _self_check() -> void:
 			fails += 1
 		print("[level-check] path to %s %s: %s (end %s)" % [k, t, "OK" if ok else "FAIL", path[path.size() - 1] if path.size() > 0 else "none"])
 	print("[level-check] enemy spawns=%d/%d cover points=%d path failures=%d" % [get_enemy_spawns().size(), _spawns_raw.size(), get_cover_points().size(), fails])
+	if not OS.get_cmdline_user_args().has("--test"):
+		_play_check()
+
+
+## Movement checks with the real player controller (only without the generic --test runner).
+func _play_check() -> void:
+	Game.run_command("start")
+	Game.run_command("god")
+	await get_tree().create_timer(0.5).timeout
+	var cases := [
+		# name, start, yaw, seconds, jump taps, expect(func(pos) -> bool)
+		["mantle crate+container C-01", Vector3(-35.9, 0.1, 15.0), 0.0, 4.0, true, func(p: Vector3): return p.y > 2.4],
+		["stair to B-04 platform", Vector3(1.9, 0.1, -10.5), 0.0, 6.0, false, func(p: Vector3): return p.y > 5.0],
+		["catwalk B-04 -> B-03", Vector3(-3.0, 5.3, -24.0), 90.0, 2.2, false, func(p: Vector3): return p.y > 5.0 and p.x < -11.5],
+		["office external stair", Vector3(21.05, 0.1, 47.0), 0.0, 5.0, false, func(p: Vector3): return p.y > 3.3],
+		["quay edge blocked", Vector3(-52.0, 0.1, 0.0), 90.0, 3.0, true, func(p: Vector3): return p.x > -56.0 and p.y > -0.5],
+		["east wall blocked", Vector3(61.5, 0.1, 20.0), -90.0, 3.0, true, func(p: Vector3): return p.x < 63.6],
+		["south fence blocked", Vector3(-20.0, 0.1, 60.0), 180.0, 3.0, true, func(p: Vector3): return p.z < 63.4],
+		["north wall blocked", Vector3(-20.0, 0.1, -58.0), 0.0, 3.0, true, func(p: Vector3): return p.z > -62.4],
+		["barrier mantle (quay)", Vector3(-47.5, 0.1, -9.0), 30.0, 3.0, true, func(p: Vector3): return true],
+	]
+	for c in cases:
+		var pl: Node3D = Game.player
+		Game.run_command("teleport %f %f %f" % [c[1].x, c[1].y, c[1].z])
+		Game.run_command("face %f 0" % c[2])
+		await get_tree().create_timer(0.3).timeout
+		Game.run_command("move fwd on")
+		var t := 0.0
+		var top := -100.0
+		var minx := 1000.0
+		while t < c[3]:
+			await get_tree().create_timer(0.25).timeout
+			t += 0.25
+			top = maxf(top, pl.global_position.y)
+			minx = minf(minx, pl.global_position.x)
+			if c[4] or int(t * 4.0) % 4 == 0:
+				Game.run_command("key jump")
+		Game.run_command("move fwd off")
+		await get_tree().create_timer(0.4).timeout
+		var p: Vector3 = pl.global_position
+		if c[0].begins_with("mantle") or c[0].begins_with("stair") or c[0].begins_with("office"):
+			p.y = top
+		if c[0].begins_with("catwalk"):
+			p = Vector3(minx, top, p.z)
+		print("[level-check] %s: %s pos=%s" % [c[0], "OK" if c[5].call(p) else "FAIL", p])
+	get_tree().quit()
 
 
 func apply_quality(q: int) -> void:

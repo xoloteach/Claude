@@ -7,6 +7,10 @@ uniform vec4 window_color : source_color = vec4(1.0, 0.72, 0.4, 1.0);
 uniform float window_energy = 2.2;
 uniform float floor_h = 3.4;
 uniform float bay_w = 2.6;
+uniform vec4 haze_color : source_color = vec4(0.5, 0.5, 0.55, 1.0);
+uniform float haze_start = 90.0;
+uniform float haze_end = 520.0;
+uniform float haze_max = 0.75;
 
 varying vec3 wpos;
 varying vec3 wnrm;
@@ -36,4 +40,7 @@ void fragment() {
 		ALBEDO = mix(ALBEDO, ALBEDO * 0.5, win);
 		EMISSION = wc * win * lit * window_energy * (0.5 + warm * 0.8);
 	}
+	float hz = smoothstep(haze_start, haze_end, length(wpos - CAMERA_POSITION_WORLD)) * haze_max;
+	ALBEDO = mix(ALBEDO, haze_color.rgb * 0.6, hz);
+	EMISSION *= (1.0 - hz * 0.6);
 }

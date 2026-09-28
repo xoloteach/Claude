@@ -68,6 +68,8 @@ var _jump_buffer := 0.0
 var _fall_speed := 0.0
 var _last_damage_time := -100.0
 var _time := 0.0
+var _mouse_ignore_frame := 0
+var _last_mouse_mode := -1
 
 # camera effects
 var recoil_punch := Vector2.ZERO    # (pitch, yaw) degrees, recovers
@@ -124,6 +126,7 @@ func _ready() -> void:
 	_noise.frequency = 1.0
 	_noise.fractal_octaves = 2
 	Game.player = self
+	_mouse_ignore_frame = Engine.get_process_frames() + 6
 	_fov_current = Game.settings.fov
 	yaw = rotation.y
 
@@ -142,6 +145,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not alive or not input_enabled:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		# browsers emit a bogus large delta when pointer lock engages; ignore briefly + reject spikes
+		if Engine.get_process_frames() < _mouse_ignore_frame or event.relative.length() > 600.0:
+			return
 		_apply_look(event.relative, Game.settings.sensitivity * 0.0022)
 	if event.is_action_pressed("next_weapon"):
 		weapons.cycle(1)
@@ -330,6 +336,11 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
+	var mm := Input.mouse_mode
+	if mm != _last_mouse_mode:
+		_last_mouse_mode = mm
+		if mm == Input.MOUSE_MODE_CAPTURED:
+			_mouse_ignore_frame = Engine.get_process_frames() + 6
 	if alive and input_enabled:
 		_process_stick_look(delta)
 		_update_aim_assist(delta)

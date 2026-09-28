@@ -1,0 +1,1 @@
+{"steps": [{"wait": 8000}, {"godot": "state"}, {"click": [480, 270]}, {"wait": 3000}, {"godot": "state"}, {"godot": "testmode 0.5"}, {"godot": "start"}, {"godot": "state"}, {"wait": 4000}, {"godot": "state"}]}

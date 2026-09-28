@@ -291,6 +291,12 @@ func run_command(cmd: String) -> void:
 		"ai":
 			if world and world.get("director") and world.director.has_method("debug_cmd"):
 				world.director.debug_cmd(Array(p.slice(1)))
+		"testmode":
+			# keep game time ~real-time even at 1 fps (software GL in CI): many physics steps per frame
+			Engine.max_physics_steps_per_frame = 240
+			Engine.physics_ticks_per_second = 60
+			if p.size() >= 2:
+				get_viewport().scaling_3d_scale = float(p[1])
 		"timescale":
 			if p.size() >= 2: Engine.time_scale = float(p[1])
 		"set":
@@ -329,7 +335,7 @@ func _tap(action: String) -> void:
 func get_state() -> Dictionary:
 	var s := {
 		"fps": Engine.get_frames_per_second(),
-		"in_game": in_game, "paused": paused, "score": score, "kills": kills, "wave": wave,
+		"in_game": in_game, "paused": paused, "input_mode": input_mode, "score": score, "kills": kills, "wave": wave,
 	}
 	if player and is_instance_valid(player) and player.has_method("debug_state"):
 		s.merge(player.debug_state())

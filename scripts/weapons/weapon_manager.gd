@@ -3,6 +3,8 @@ extends Node3D
 ## First-person weapon handling: input, firing (hitscan), viewmodel motion (ADS, sway, bob, sprint poses,
 ## recoil springs, wall pull-back), switching, and FP arms.
 
+const VIEWMODEL_VFOV := 64.0
+
 var player: Node   # Player
 var camera: Camera3D
 var weapons: Array[Weapon] = []
@@ -476,6 +478,10 @@ func _update_viewmodel(delta: float, ctx: Dictionary) -> void:
 	view_root.visible = not scoped
 	arms.left_override_w = weapon.left_hand_w
 	arms.update_arms()
+	# Independent viewmodel FOV: squash camera-space x/y so the weapon renders as if seen through a
+	# fixed VIEWMODEL_VFOV lens regardless of world FOV (constant gun size when ADS-zooming / FOV slider).
+	var k := tan(deg_to_rad(camera.fov) * 0.5) / tan(deg_to_rad(VIEWMODEL_VFOV) * 0.5)
+	view_root.transform = Transform3D(Basis.from_scale(Vector3(k, k, 1.0)), Vector3.ZERO)
 
 
 func _check_wall() -> float:

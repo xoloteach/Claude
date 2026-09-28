@@ -23,6 +23,8 @@ func _ready() -> void:
 	level.name = "Level"
 	add_child(level)
 	level.build()
+	if level.has_method("configure_environment"):
+		level.configure_environment(env, sun)
 	menu_cam = Camera3D.new()
 	menu_cam.fov = 55.0
 	menu_cam.far = 800.0

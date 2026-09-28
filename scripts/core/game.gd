@@ -289,6 +289,15 @@ func run_command(cmd: String) -> void:
 				world.debug_spawn_enemy(int(p[1]) if p.size() > 1 else 1)
 		"timescale":
 			if p.size() >= 2: Engine.time_scale = float(p[1])
+		"set":
+			# set <setting> <value>
+			if p.size() >= 3 and settings.has(p[1]):
+				var cur = settings[p[1]]
+				var v: Variant = p[2]
+				if cur is bool: v = p[2] in ["1", "true", "on"]
+				elif cur is int: v = int(p[2])
+				elif cur is float: v = float(p[2])
+				set_setting(p[1], v)
 		"state":
 			pass
 

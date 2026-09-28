@@ -19,7 +19,7 @@ const ROOT = path.resolve(TOOLS, '..');
 // ---------------------------------------------------------------- args
 const argv = process.argv.slice(2);
 const opt = { timeout: 300000, bootTimeout: 180000, build: path.join(ROOT, 'build/web'), port: 0,
-  headed: false, allowErrors: false, scenario: 'smoke' };
+  headed: false, allowErrors: false, scenario: 'smoke', vw: 1600, vh: 900 };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   const next = () => argv[++i];
@@ -28,6 +28,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === '--build') opt.build = path.resolve(next());
   else if (a === '--port') opt.port = Number(next());
   else if (a === '--headed') opt.headed = true;
+  else if (a === '--viewport') { const [w, h] = next().split('x').map(Number); opt.vw = w; opt.vh = h; }
   else if (a === '--allow-errors') opt.allowErrors = true;
   else if (a === '-h' || a === '--help') {
     console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 10).join('\n'));
@@ -107,7 +108,7 @@ async function main() {
       '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'],
   });
-  const context = await browser.newContext({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+  const context = await browser.newContext({ viewport: { width: opt.vw, height: opt.vh }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   page.setDefaultTimeout(opt.timeout);
 

@@ -1,0 +1,14 @@
+{
+  "name": "ironline-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Build/playtest tooling for IRONLINE",
+  "type": "module",
+  "scripts": {
+    "smoke": "node playtest.mjs smoke",
+    "combat": "node playtest.mjs combat"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0"
+  }
+}

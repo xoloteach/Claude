@@ -1,0 +1,30 @@
+{
+  "description": "Boot, screenshot menu, click Play (center), walk around a bit.",
+  "steps": [
+    {"wait": 2000},
+    {"screenshot": "01_menu"},
+    {"click": [800, 450]},
+    {"wait": 3000},
+    {"screenshot": "02_after_play"},
+    {"godot": "state"},
+    {"key": "KeyW", "down": true},
+    {"wait": 1500},
+    {"key": "KeyW", "up": true},
+    {"key": "KeyA", "down": true},
+    {"wait": 700},
+    {"key": "KeyA", "up": true},
+    {"mouse_move": [200, 0], "steps": 10},
+    {"press": "Space"},
+    {"wait": 800},
+    {"screenshot": "03_moved"},
+    {"mouse_down": "left"},
+    {"wait": 600},
+    {"mouse_up": "left"},
+    {"press": "KeyR"},
+    {"wait": 1500},
+    {"screenshot": "04_fired_reloaded"},
+    {"press": "Escape"},
+    {"wait": 1000},
+    {"screenshot": "05_pause"}
+  ]
+}

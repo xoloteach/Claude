@@ -1,0 +1,96 @@
+name: Build & deploy web (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+  GODOT_DIR: /home/runner/.local/godot
+  GODOT_TEMPLATES: /home/runner/.local/share/godot/export_templates/4.7.2.stable
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot editor + web templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.GODOT_DIR }}
+            ${{ env.GODOT_TEMPLATES }}
+          key: godot-${{ env.GODOT_VERSION }}-web-v1
+
+      - name: Setup Godot
+        run: tools/setup_godot.sh
+
+      - name: Export Web
+        run: tools/export_web.sh
+
+      - name: Upload export logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: export-logs
+          path: build/logs/
+          if-no-files-found: ignore
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Headless smoke playtest of the exported build. Informational: does not block deploy.
+  smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: build/pages-artifact
+      - name: Unpack build
+        run: mkdir -p build/web && tar -xf build/pages-artifact/artifact.tar -C build/web
+      - name: Install Playwright
+        run: |
+          npm install --prefix tools --no-audit --no-fund
+          npx --prefix tools playwright install --with-deps chromium
+      - name: Smoke playtest
+        run: node tools/playtest.mjs smoke --boot-timeout 240000
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playtest-shots
+          path: tools/shots/
+          include-hidden-files: false

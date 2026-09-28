@@ -338,6 +338,8 @@ func _apply_hit(res: Dictionary, origin: Vector3, dir: Vector3, d: Dictionary) -
 				kind = "headkill" if zone == "head" else "kill"
 			elif zone == "head":
 				kind = "head"
+			elif r.get("armor", false):
+				kind = "armor"
 			return {"kind": kind, "damage": dmg * mult}
 		return {"kind": "", "damage": 0.0}
 	var surface := "concrete"

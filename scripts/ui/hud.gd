@@ -212,6 +212,9 @@ func _on_hit(kind: String, _dmg: float) -> void:
 			Audio.play("hitmarker_kill", -2.0, 0.02)
 			Audio.play("headshot", -4.0, 0.03)
 		"head": Audio.play("headshot", -5.0, 0.03)
+		"armor":
+			Audio.play("hitmarker", -5.0, 0.03)
+			Audio.play("impact_metal", -14.0, 0.1)
 		_: Audio.play("hitmarker", -5.0, 0.03)
 
 
@@ -431,6 +434,9 @@ func _draw_hitmarker(c: Vector2) -> void:
 	elif _hit_kind == "head":
 		col = Color(1.0, 0.9, 0.5)
 		sz = 13.0
+	elif _hit_kind == "armor":
+		col = Color(0.55, 0.8, 1.0)
+		sz = 12.0
 	var grow := 1.0 + (1.0 - k) * 0.35 if _hit_kind in ["kill", "headkill"] else 1.0 + k * 0.15
 	col.a = 1.0 - k * k
 	for d in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:

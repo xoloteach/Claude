@@ -36,6 +36,7 @@ var settings := {
 	"show_fps": false,
 	"touch_controls": -1,      # -1 auto, 0 off, 1 on
 	"aim_assist": true,
+	"difficulty": 1,           # 0 recruit, 1 regular, 2 veteran
 }
 
 var score := 0
@@ -287,6 +288,9 @@ func run_command(cmd: String) -> void:
 		"spawn":
 			if world and world.has_method("debug_spawn_enemy"):
 				world.debug_spawn_enemy(int(p[1]) if p.size() > 1 else 1)
+		"ai":
+			if world and world.get("director") and world.director.has_method("debug_cmd"):
+				world.director.debug_cmd(Array(p.slice(1)))
 		"timescale":
 			if p.size() >= 2: Engine.time_scale = float(p[1])
 		"set":
@@ -340,7 +344,11 @@ func _publish_state() -> void:
 
 func _enter_tree() -> void:
 	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--test") and ResourceLoader.exists("res://tools/tests/runner.gd"):
-			var r: Node = load("res://tools/tests/runner.gd").new()
+		if a.begins_with("--test"):
+			var tname := a.substr(7) if a.begins_with("--test=") else ""
+			var path := "res://tools/tests/%s_runner.gd" % tname if tname != "" else "res://tools/tests/runner.gd"
+			if not ResourceLoader.exists(path):
+				continue
+			var r: Node = load(path).new()
 			r.name = "TestRunner"
 			add_child.call_deferred(r)

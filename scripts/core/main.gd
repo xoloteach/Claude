@@ -104,7 +104,7 @@ func _setup_environment() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
 	# HDRI sun ~6 deg elevation; raise to ~24 deg for readable shadows while keeping the azimuth
-	sun.rotation_degrees = Vector3(-24.0, -35.8 + 180.0, 0.0)
+	sun.rotation_degrees = Vector3(-24.0, -35.8, 0.0)
 	sun.light_color = Color(1.0, 0.8, 0.6)
 	sun.light_energy = 2.2
 	sun.shadow_enabled = true
@@ -127,7 +127,7 @@ func _apply_quality() -> void:
 	vp.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][q]
 	vp.scaling_3d_scale = [0.75, 0.9, 1.0][q]
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = [45.0, 70.0, 100.0][q]
+	sun.directional_shadow_max_distance = [50.0, 80.0, 110.0][q]
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q == 0 else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	env.glow_enabled = q >= 1
 	RenderingServer.directional_shadow_atlas_set_size([2048, 4096, 4096][q], true)

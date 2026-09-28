@@ -37,6 +37,15 @@ var _pending_release := {}             # action -> time left
 var _removed_mouse_events := {}        # action -> Array[InputEvent] (restored on deactivate)
 var _emulate_default := true
 var _mouse_sim_down := false
+var _touch_latched := false          # Auto mode: a finger was used more recently than keys / pad / mouse
+var _last_touch_ms := -100000
+var _js_window = null
+var _ammo := -1
+var _reserve := 0
+var _mag := 30
+var _weapon_name := ""
+var _dbg_t := 0.0
+var _last_events: Array = []
 
 
 func _ready() -> void:
@@ -65,8 +74,13 @@ func _ready() -> void:
 	_add_btn("swap", "next_weapon", "tap", Vector2(1, 1), Vector2(-282, -58), 27, "icon_arrow", "SWAP")
 	_add_btn("pause", "", "pause", Vector2(1, 0), Vector2(-38, 36), 22, "icon_pause", "")
 	get_viewport().size_changed.connect(_relayout)
+	Game.ammo_changed.connect(func(a, r, m):
+		_ammo = a; _reserve = r; _mag = m)
+	Game.weapon_changed.connect(func(def): _weapon_name = str(def.get("name", "")).to_upper())
 	_relayout()
 	root.visible = false
+	if OS.has_feature("web"):
+		_js_window = JavaScriptBridge.get_interface("window")
 
 
 func _add_btn(id: String, action: String, kind: String, anchor: Vector2, off: Vector2, r: float, icon: String, caption: String) -> void:
@@ -97,7 +111,7 @@ func _wanted() -> bool:
 	if t == 1:
 		return true
 	var mobile := OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
-	return Game.wants_touch_controls() and (Game.input_mode == "touch" or mobile)
+	return Game.wants_touch_controls() and (_touch_latched or Game.input_mode == "touch" or mobile)
 
 
 func is_active() -> bool:
@@ -163,6 +177,19 @@ func _notification(what: int) -> void:
 
 # ====================================================================== input
 func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_touch_latched = true
+		_last_touch_ms = Time.get_ticks_msec()
+	elif (event is InputEventKey and event.pressed) or event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.5):
+		_touch_latched = false
+	elif event is InputEventMouseButton and event.pressed and event.device != InputEvent.DEVICE_ID_EMULATION and Time.get_ticks_msec() - _last_touch_ms > 1500:
+		_touch_latched = false
+	if event is InputEventMouse:
+		_last_events.append("%s dev%d @%d,%d" % ["MM" if event is InputEventMouseMotion else "MB", event.device, int(event.position.x), int(event.position.y)])
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_last_events.append("%s#%d@%d,%d%s" % ["T" if event is InputEventScreenTouch else "D", event.index, int(event.position.x), int(event.position.y), ("+" if event.pressed else "-") if event is InputEventScreenTouch else ""])
+		if _last_events.size() > 12:
+			_last_events.pop_front()
 	if not _active:
 		return
 	if event is InputEventScreenTouch:
@@ -174,6 +201,12 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag:
 		_touch_drag(event.index, event.position, event.relative)
 		get_viewport().set_input_as_handled()
+	elif event is InputEventMouse and not _mouse_sim():
+		# Browsers synthesize compatibility mouse events for touches/drags. While the touch layout is
+		# up they must not reach gameplay (Game would flip input_mode to "kbm", main would try to
+		# capture the pointer and "fire" would trigger from the emulated left click).
+		if Time.get_ticks_msec() - _last_touch_ms < 1500 or _fingers.size() > 0:
+			get_viewport().set_input_as_handled()
 	elif _mouse_sim():
 		# desktop testing: left mouse button = one finger (index 0)
 		if event is InputEventMouseButton:
@@ -360,6 +393,14 @@ func _send_action(action: String, pressed: bool) -> void:
 # ====================================================================== frame
 func _process(delta: float) -> void:
 	_set_active(is_active())
+	if _js_window != null:
+		_dbg_t -= delta
+		if _dbg_t <= 0.0:
+			_dbg_t = 0.25
+			var d := debug_state()
+			d["events"] = _last_events
+			d["viewport"] = [get_viewport().get_visible_rect().size.x, get_viewport().get_visible_rect().size.y]
+			_js_window.ironline_touch_json = JSON.stringify(d)
 	if not _active:
 		return
 	for a in _pending_release.keys():
@@ -414,6 +455,38 @@ func _draw_root() -> void:
 	# ---- buttons
 	for b in _buttons:
 		_draw_button(b)
+	_draw_ammo()
+
+
+## Compact ammo readout left of SWAP (the HUD hides its big bottom-right block in touch mode).
+func _draw_ammo() -> void:
+	if _ammo < 0:
+		return
+	var k := _k
+	var sw: Dictionary = _btn_by_id.swap
+	var right: float = sw.pos.x - sw.rad - 12.0 * k
+	var base_y: float = sw.pos.y + 10.0 * k
+	var nf := T.font(T.FONT_NUM)
+	var fs := int(34 * k)
+	var rs := int(17 * k)
+	var res_txt := " / %d" % _reserve
+	var rw := nf.get_string_size(res_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, rs).x
+	var a_txt := str(_ammo)
+	var aw := nf.get_string_size(a_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var low := _ammo <= int(ceil(_mag * 0.25))
+	var col := T.C_RED if _ammo == 0 else (T.C_ACCENT if low else T.C_WHITE)
+	root.draw_string(nf, Vector2(right - rw - aw + 1, base_y + 2), a_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.5))
+	root.draw_string(nf, Vector2(right - rw - aw, base_y), a_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	root.draw_string(nf, Vector2(right - rw, base_y), res_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, rs, T.C_DIM)
+	var hf := T.font(T.FONT_HEAD, 1)
+	var ns := int(13 * k)
+	var nw := hf.get_string_size(_weapon_name, HORIZONTAL_ALIGNMENT_LEFT, -1, ns).x
+	root.draw_string(hf, Vector2(right - nw, base_y - fs * 0.78), _weapon_name, HORIZONTAL_ALIGNMENT_LEFT, -1, ns, Color(1, 1, 1, 0.8))
+	# magazine bar
+	var bw := 90.0 * k
+	var t := clampf(float(_ammo) / maxf(1.0, float(_mag)), 0.0, 1.0)
+	root.draw_rect(Rect2(right - bw, base_y + 6.0 * k, bw, 3.0 * k), Color(1, 1, 1, 0.18))
+	root.draw_rect(Rect2(right - bw * t, base_y + 6.0 * k, bw * t, 3.0 * k), col)
 
 
 func _draw_button(b: Dictionary) -> void:
@@ -470,4 +543,6 @@ func _text(c: Vector2, s: String, size: float, col: Color) -> void:
 
 # ====================================================================== debug
 func debug_state() -> Dictionary:
-	return {"touch_active": _active, "fingers": _fingers.size(), "stick": [snappedf(_stick_vec.x, 0.01), snappedf(_stick_vec.y, 0.01)], "ads_toggle": _ads_on}
+	var types := []
+	for f in _fingers.values(): types.append(f.type)
+	return {"mode": Game.input_mode, "touch_active": _active, "fingers": types, "stick": [snappedf(_stick_vec.x, 0.01), snappedf(_stick_vec.y, 0.01)], "ads_toggle": _ads_on}

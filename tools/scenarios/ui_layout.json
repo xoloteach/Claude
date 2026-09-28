@@ -1,0 +1,9 @@
+{"description": "Layout check at any --viewport: title, main, settings (via test hook), controls, game over.",
+ "steps": [
+  {"wait": 4000}, {"screenshot": "title"}, {"click": [300, 300]}, {"wait": 3000}, {"screenshot": "main"},
+  {"eval": "window.ironline_ui('screen settings')"}, {"wait": 3000}, {"screenshot": "settings"},
+  {"press": "Escape"}, {"wait": 1000},
+  {"eval": "window.ironline_ui('screen controls')"}, {"wait": 3000}, {"screenshot": "controls"},
+  {"press": "Escape"}, {"wait": 1000},
+  {"eval": "window.ironline_ui('gameover')"}, {"wait": 5000}, {"screenshot": "game_over"}
+ ]}

@@ -10,7 +10,7 @@ const W := preload("res://scripts/ui/menu_widgets.gd")
 
 const TAGLINE := "OPERATION: DEEP WATER"
 const DESIGN_H := 900.0          # logical height on desktop
-const DESIGN_H_TOUCH := 600.0    # logical height on touch screens (=> everything bigger)
+const DESIGN_H_TOUCH := 680.0    # logical height on touch screens (=> everything bigger)
 
 const DEFAULTS := {
 	"sensitivity": 1.0, "ads_sensitivity": 0.85, "pad_sensitivity": 1.0, "touch_sensitivity": 1.0,
@@ -77,6 +77,7 @@ var _time := 0.0
 var _blur_t := 0.0
 var _blur_target := 0.0
 var _title_armed_t := 0.0
+var _guard_t := 0.0
 
 # per-screen widgets
 var _main_items: Array = []
@@ -101,6 +102,13 @@ var _controls_tabs: Array = []
 var _controls_pages: Array = []
 var _controls_tab := 0
 var _prompt_buttons := {}
+var _js_cb = null
+var _last_input_was_gesture := false
+var _last_touch_ms := -100000
+var _mode_card: Control
+var _detail: PanelContainer
+var _detail_title: Label
+var _detail_desc: Label
 
 
 func _ready() -> void:
@@ -143,6 +151,20 @@ func _ready() -> void:
 	Game.settings_changed.connect(_on_settings_changed)
 	_layout()
 	_open_root("title", "title")
+	if OS.has_feature("web"):
+		# test hook: window.ironline_ui("gameover") / ("screen settings")
+		var w = JavaScriptBridge.get_interface("window")
+		if w:
+			_js_cb = JavaScriptBridge.create_callback(func(args: Array):
+				var c := str(args[0]) if args.size() > 0 else ""
+				if c == "gameover":
+					var m := _main_node()
+					if m: m.set("state", "dead")
+					Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+					show_game_over({"score": 4350, "kills": 31, "headshots": 12, "wave": 7, "accuracy": 38.6, "time": 612.4})
+				elif c.begins_with("screen ") and screens.has(c.substr(7)):
+					_push(c.substr(7)))
+			w.ironline_ui = _js_cb
 
 
 ## Gamepad A/B must drive the GUI (not in the engine defaults for this version).
@@ -268,13 +290,35 @@ func _deploy() -> void:
 	# NOTE: called from the click/press handler -> the browser treats it as a user gesture,
 	# so main.start_game()'s pointer capture is allowed on web.
 	if m and m.has_method("start_game"):
+		if "_had_capture" in m:
+			m.set("_had_capture", false)
+		_precapture()
 		m.start_game()
+
+
+## Request pointer lock right away, while the browser still counts this as a user gesture:
+## start_game() builds the player first and on slow devices that can outlast the gesture window.
+func _precapture() -> void:
+	if Game.input_mode != "kbm":
+		return
+	var m := _main_node()
+	var t: Node = m.get("touch") if m else null
+	if t and t.has_method("_wanted") and t._wanted():
+		return
+	if OS.has_feature("web") and not _last_input_was_gesture:
+		return
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _resume() -> void:
 	T.sound("ui_back")
 	var m := _main_node()
 	if m and m.has_method("resume_game"):
+		# main._process re-pauses when it sees "had pointer lock, now lost". Pointer lock is granted
+		# asynchronously after resume on web, so clear that stale flag first (see change request).
+		if "_had_capture" in m:
+			m.set("_had_capture", false)
+		_precapture()
 		m.resume_game()
 
 
@@ -289,11 +333,31 @@ func _retry() -> void:
 	T.sound("ui_click")
 	var m := _main_node()
 	if m and m.has_method("start_game"):
+		if "_had_capture" in m:
+			m.set("_had_capture", false)
+		_precapture()
 		m.start_game()
 
 
 # ====================================================================== input
 func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_last_touch_ms = Time.get_ticks_msec()
+	elif event is InputEventMouseMotion and event.device != InputEvent.DEVICE_ID_EMULATION and Time.get_ticks_msec() - _last_touch_ms < 800:
+		# browser "compatibility" mouse moves that follow a touch: keep Game.input_mode on "touch"
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		_last_input_was_gesture = true
+	elif event is InputEventKey and event.pressed:
+		# Esc never grants user activation in browsers; other keys do
+		_last_input_was_gesture = event.physical_keycode != KEY_ESCAPE
+	elif event is InputEventJoypadButton:
+		_last_input_was_gesture = false
+	# swallow the emulated mouse click that follows the "tap to start" touch
+	if _guard_t > 0.0 and ((event is InputEventMouseButton and event.device == InputEvent.DEVICE_ID_EMULATION) or event is InputEventScreenTouch):
+		get_viewport().set_input_as_handled()
+		return
 	if ctx == "title" and _title_armed_t <= 0.0 and screens.title.visible:
 		var any := false
 		if event is InputEventKey and event.pressed and not event.echo:
@@ -307,6 +371,7 @@ func _input(event: InputEvent) -> void:
 		if any:
 			get_viewport().set_input_as_handled()
 			T.sound("ui_click")
+			_guard_t = 0.3
 			_open_root("main", "menu")
 		return
 	if not is_open():
@@ -371,6 +436,7 @@ func _focus_list(name: String) -> Array:
 func _process(delta: float) -> void:
 	_time += delta
 	_title_armed_t -= delta
+	_guard_t -= delta
 	(backdrop.material as ShaderMaterial).set_shader_parameter("time_s", _time)
 	_blur_t = move_toward(_blur_t, _blur_target, delta * 4.0)
 	if blur.visible:
@@ -408,6 +474,17 @@ func _layout() -> void:
 		c.offset_right = margin + w
 	var mat := backdrop.material as ShaderMaterial
 	mat.set_shader_parameter("panel_frac", clampf((margin + 560.0) / _logical.x, 0.25, 0.9))
+	if _mode_card:
+		_mode_card.visible = _logical.x >= 1180.0
+		_mode_card.offset_right = -margin
+		_mode_card.offset_left = -margin - 400.0
+	if _detail:
+		var dx := margin + 900.0 + 56.0
+		var wide := _logical.x - dx >= 380.0
+		_detail.visible = wide
+		_settings_desc.visible = not wide
+		_detail.offset_left = dx
+		_detail.offset_right = minf(_logical.x - margin, dx + 480.0)
 	if footer_left:
 		footer_left.get_parent().offset_left = margin
 		footer_left.get_parent().offset_right = -margin
@@ -572,6 +649,29 @@ func _build_main() -> void:
 	col.add_child(_main_desc)
 	for b in _main_items:
 		b.focus_entered.connect(func(): _main_desc.text = b.desc)
+	# featured playlist card, bottom-right (CoD-style)
+	var card := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.02, 0.025, 0.03, 0.78)
+	sb.border_width_top = 3
+	sb.border_color = T.C_ACCENT
+	sb.content_margin_left = 22; sb.content_margin_right = 22
+	sb.content_margin_top = 14; sb.content_margin_bottom = 16
+	card.add_theme_stylebox_override("panel", sb)
+	card.anchor_left = 1.0; card.anchor_right = 1.0; card.anchor_top = 1.0; card.anchor_bottom = 1.0
+	card.offset_top = -250; card.offset_bottom = -96
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	s.add_child(card)
+	var cv := VBoxContainer.new()
+	cv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cv.add_theme_constant_override("separation", 0)
+	card.add_child(cv)
+	cv.add_child(T.label("FEATURED  ·  SOLO", T.FONT_SEMI, 17, T.C_ACCENT, 4))
+	cv.add_child(T.label("SURVIVAL", T.FONT_HEAD, 54, T.C_WHITE, 2))
+	var cd := T.label("Harbor docks. Endless waves, rising threat. Earn points for kills and headshots.", T.FONT_BODY_MED, 17, T.C_DIM)
+	cd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cv.add_child(cd)
+	_mode_card = card
 
 
 # ====================================================================== PAUSE
@@ -719,7 +819,7 @@ func _build_settings() -> void:
 			_sync_settings())
 		_spacer(page, 6)
 		page.add_child(rst)
-		rst.focus_entered.connect(func(): _settings_desc.text = "Reset this page to its default values.")
+		rst.focus_entered.connect(func(): _set_setting_desc("RESTORE DEFAULTS", "Reset every option on this page to its default value."))
 		focusables.append(rst)
 		_chain(focusables)
 		_settings_rows.append(focusables)
@@ -732,6 +832,30 @@ func _build_settings() -> void:
 	_settings_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_settings_desc.custom_minimum_size = Vector2(0, 48)
 	col.add_child(_settings_desc)
+	# right-hand detail panel (wide screens)
+	_detail = PanelContainer.new()
+	var dsb := StyleBoxFlat.new()
+	dsb.bg_color = Color(0.02, 0.025, 0.03, 0.8)
+	dsb.border_width_top = 3
+	dsb.border_color = T.C_ACCENT
+	dsb.content_margin_left = 24; dsb.content_margin_right = 24
+	dsb.content_margin_top = 16; dsb.content_margin_bottom = 20
+	_detail.add_theme_stylebox_override("panel", dsb)
+	_detail.anchor_top = 0.0; _detail.anchor_bottom = 0.0
+	_detail.offset_top = 262; _detail.offset_bottom = 262
+	_detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	s.add_child(_detail)
+	var dv := VBoxContainer.new()
+	dv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dv.add_theme_constant_override("separation", 6)
+	_detail.add_child(dv)
+	dv.add_child(T.label("DETAILS", T.FONT_SEMI, 16, T.C_ACCENT, 4))
+	_detail_title = T.label("", T.FONT_HEAD, 36, T.C_WHITE, 2)
+	_detail_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dv.add_child(_detail_title)
+	_detail_desc = T.label("", T.FONT_BODY_MED, 20, Color(0.86, 0.87, 0.85))
+	_detail_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dv.add_child(_detail_desc)
 
 
 func _make_setting_row(d: Array) -> Control:
@@ -757,7 +881,7 @@ func _make_setting_row(d: Array) -> Control:
 				# runs inside the click / key handler => counts as a user gesture on web
 				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if v == 1 else DisplayServer.WINDOW_MODE_WINDOWED))
 			key = "__fullscreen"
-	row.focus_entered.connect(func(): _settings_desc.text = row.desc)
+	row.focus_entered.connect(func(): _set_setting_desc(row.caption, row.desc))
 	if not _rows.has(key):
 		_rows[key] = []
 	_rows[key].append(row)
@@ -801,7 +925,14 @@ func _select_settings_tab(i: int, focus_first: bool) -> void:
 		first.grab_focus()
 	else:
 		_focus(first)
-	_settings_desc.text = first.get("desc") if first.get("desc") else ""
+	_set_setting_desc(str(first.get("caption")), str(first.get("desc")))
+
+
+func _set_setting_desc(title: String, desc: String) -> void:
+	_settings_desc.text = desc
+	if _detail_title:
+		_detail_title.text = title
+		_detail_desc.text = desc
 
 
 func _style_scrollbar(sc: ScrollContainer) -> void:
@@ -1023,7 +1154,7 @@ func _animate_game_over() -> void:
 	var tw := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(_over_title, "modulate", Color(1, 1, 1, 1), 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(_over_title, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_method(_set_over_values, 0.0, 1.0, 1.5).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_method(_set_over_values, 0.0, 1.0, 1.4).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	_set_over_values(0.0)
 
 

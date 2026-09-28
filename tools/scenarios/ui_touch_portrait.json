@@ -1,0 +1,8 @@
+{"description": "Portrait phone layout (use --viewport 412x915): menus and in-game touch UI.",
+ "steps": [
+  {"wait": 4000}, {"tap": [206, 450]}, {"wait": 3000}, {"screenshot": "main"},
+  {"eval": "window.ironline_ui('screen settings')"}, {"wait": 3000}, {"screenshot": "settings"},
+  {"eval": "window.ironline_cmd('start')"}, {"wait": 5000},
+  {"tap": [300, 600]}, {"wait": 2500}, {"screenshot": "ingame"},
+  {"expect": "s.state === 'playing'", "label": "playing"}
+ ]}

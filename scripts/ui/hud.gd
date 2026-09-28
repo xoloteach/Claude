@@ -35,6 +35,8 @@ var feed: VBoxContainer
 var fps_label: Label
 var hint_label: Label
 var tac_bar: Control
+var _ammo_box: Control
+var _touch_layout := false
 
 var _hit_t := 1.0
 var _hit_kind := ""
@@ -145,6 +147,7 @@ func _build_ammo() -> void:
 	box.offset_left = -420; box.offset_right = -40; box.offset_top = -150; box.offset_bottom = -34
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(box)
+	_ammo_box = box
 	weapon_name = _label("M13", FONT_HEAD, 24, C_WHITE, HORIZONTAL_ALIGNMENT_RIGHT)
 	weapon_name.position = Vector2(0, 0); weapon_name.size = Vector2(380, 30)
 	box.add_child(weapon_name)
@@ -338,16 +341,43 @@ func _process(delta: float) -> void:
 			var period := 0.75
 			if fmod(_time, period) < delta:
 				Audio.play("heartbeat", -6.0, 0.0)
+	_update_touch_layout()
 	fps_label.visible = Game.settings.show_fps
 	if fps_label.visible:
 		fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 	draw_layer.queue_redraw()
 
 
+## Touch controls own the bottom corners: the touch layer draws its own ammo readout next to FIRE,
+## so the big ammo block and bottom hint are hidden and the kill feed moves under the score.
+func _update_touch_layout() -> void:
+	var t: Node = Game.world.get("touch") if Game.world else null
+	var on: bool = t != null and t.has_method("is_active") and t.is_active()
+	if on == _touch_layout:
+		return
+	_touch_layout = on
+	_ammo_box.visible = not on
+	hint_label.visible = not on
+	if on:
+		feed.anchor_top = 0.0; feed.anchor_bottom = 0.0
+		feed.offset_left = 150; feed.offset_top = 112; feed.offset_bottom = 230; feed.offset_right = 560
+		feed.alignment = BoxContainer.ALIGNMENT_BEGIN
+		fps_label.offset_right = -80
+	else:
+		feed.anchor_top = 1.0; feed.anchor_bottom = 1.0
+		feed.offset_left = 36; feed.offset_top = -260; feed.offset_bottom = -150; feed.offset_right = 520
+		feed.alignment = BoxContainer.ALIGNMENT_END
+		fps_label.offset_right = -12
+
+
 func _glyph(action: String) -> String:
 	if Game.input_mode == "pad":
-		return {"reload": "X", "interact": "X", "jump": "A", "crouch": "B"}.get(action, action.to_upper())
-	return {"reload": "R", "interact": "F", "jump": "SPACE", "crouch": "C"}.get(action, action.to_upper())
+		return {"reload": "X", "interact": "X", "jump": "A", "crouch": "B", "swap": "Y", "grenade": "RB",
+			"melee": "R3", "sprint": "L3", "ads": "LT", "fire": "RT", "pause": "START", "scoreboard": "BACK"}.get(action, action.to_upper())
+	if _touch_layout or Game.input_mode == "touch":
+		return "TAP"
+	return {"reload": "R", "interact": "F", "jump": "SPACE", "crouch": "C", "swap": "Q", "grenade": "G",
+		"melee": "V", "sprint": "SHIFT", "ads": "RMB", "fire": "LMB", "pause": "ESC", "scoreboard": "TAB"}.get(action, action.to_upper())
 
 
 func _draw_vectors() -> void:

@@ -1,0 +1,18 @@
+{"description": "Quick visual check of gameplay views via JS bridge.",
+ "steps": [
+  {"wait": 1500}, {"screenshot": "00_menu"},
+  {"godot": "start"}, {"godot": "god"}, {"wait": 2500},
+  {"screenshot": "01_hip"},
+  {"godot": "ads on"}, {"wait": 800}, {"screenshot": "02_ads"},
+  {"godot": "fire on"}, {"wait": 120}, {"screenshot": "03_ads_fire"}, {"wait": 400}, {"godot": "fire off"}, {"godot": "ads off"},
+  {"wait": 500}, {"godot": "fire on"}, {"wait": 90}, {"screenshot": "04_hip_fire"}, {"godot": "fire off"},
+  {"godot": "key reload"}, {"wait": 600}, {"screenshot": "05_reload"},
+  {"wait": 2000}, {"godot": "move fwd on"}, {"godot": "key sprint"}, {"wait": 900}, {"screenshot": "06_sprint"},
+  {"godot": "key sprint"}, {"wait": 600}, {"screenshot": "07_tac"}, {"godot": "move fwd off"},
+  {"godot": "weapon 2"}, {"wait": 1200}, {"screenshot": "08_smg"},
+  {"godot": "weapon 3"}, {"wait": 1200}, {"screenshot": "09_shotgun"},
+  {"godot": "weapon 4"}, {"wait": 1200}, {"screenshot": "10_sniper"},
+  {"godot": "ads on"}, {"wait": 1200}, {"screenshot": "11_scope"}, {"godot": "ads off"},
+  {"godot": "weapon 5"}, {"wait": 1200}, {"screenshot": "12_pistol"},
+  {"godot": "state"}
+ ]}

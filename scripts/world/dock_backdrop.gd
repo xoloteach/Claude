@@ -94,7 +94,7 @@ static func build(kit: WKit, L) -> void:
 		if rng.randf() < 0.12:
 			h = rng.randf_range(80.0, 130.0)
 		var w := rng.randf_range(16.0, 40.0)
-		var col := Color(0.3, 0.31, 0.34) * rng.randf_range(0.75, 1.15)
+		var col := Color(0.2, 0.22, 0.26) * rng.randf_range(0.75, 1.15)
 		_blk(kit, Vector3(w, h, rng.randf_range(16.0, 36.0)), pos, col, rng.randf_range(0.15, 0.4), rng.randf_range(-20, 20))
 	# hills behind the city and across the water (low, hazy)
 	var hill := func(center: Vector3, radius: float, height: float, segs: int, col: Color) -> void:
@@ -118,7 +118,7 @@ static func build(kit: WKit, L) -> void:
 			kit.tri(b, mid[i], mid[j], ring[j], c2)
 			kit.tri(b, mid[i], top, mid[j], c2)
 	for hp in [[Vector3(560.0, 0, -350.0), 260.0, 90.0], [Vector3(580.0, 0, 120.0), 300.0, 120.0], [Vector3(420.0, 0, 420.0), 200.0, 70.0],
-			[Vector3(-520.0, 0, -380.0), 220.0, 55.0], [Vector3(-560.0, 0, 380.0), 240.0, 40.0]]:
+			]:
 		hill.call(hp[0], hp[1], hp[2], 9, Color(0.26, 0.26, 0.27))
 	# breakwater + lighthouse to the south-west (in front of the sunset)
 	_blk(kit, Vector3(10.0, 3.2, 180.0), Vector3(-240.0, -2.2, 170.0), Color(0.42, 0.41, 0.4), 0.0, 35.0)

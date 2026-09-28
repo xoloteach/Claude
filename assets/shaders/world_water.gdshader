@@ -6,13 +6,13 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_s
 
 uniform sampler2D tex_n1 : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D tex_macro : hint_default_white, filter_linear_mipmap, repeat_enable;
-uniform vec4 deep_color : source_color = vec4(0.02, 0.06, 0.07, 1.0);
-uniform vec4 shallow_color : source_color = vec4(0.05, 0.12, 0.12, 1.0);
+uniform vec4 deep_color : source_color = vec4(0.008, 0.025, 0.03, 1.0);
+uniform vec4 shallow_color : source_color = vec4(0.02, 0.05, 0.05, 1.0);
 uniform vec4 sky_tint : source_color = vec4(0.55, 0.42, 0.36, 1.0);
 uniform vec4 foam_color : source_color = vec4(0.75, 0.72, 0.66, 1.0);
-uniform float wave_scale = 0.045;
+uniform float wave_scale = 0.11;
 uniform float wave_speed = 0.02;
-uniform float normal_strength = 0.55;
+uniform float normal_strength = 0.28;
 uniform float quay_x = -56.0;
 uniform float ship_x = -61.0;
 uniform float ship_z_min = -140.0;
@@ -59,7 +59,7 @@ void fragment() {
 	float stir = 1.0 - smoothstep(0.0, 9.0, dwall);
 
 	vec3 base = mix(deep_color.rgb, shallow_color.rgb, stir * 0.6 + n3.x * 0.1);
-	vec3 col = mix(base, sky_tint.rgb, fres * 0.55);
+	vec3 col = mix(base, sky_tint.rgb * 0.5, fres * 0.5);
 	col = mix(col, foam_color.rgb, foam * 0.8);
 
 	ALBEDO = col;

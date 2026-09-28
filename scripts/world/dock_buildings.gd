@@ -123,7 +123,7 @@ static func _warehouse(kit: WKit, L) -> void:
 	var split := 3.0
 	var win_v := [6.6, 8.6]
 	# west wall (faces the yard + the setting sun): clerestory glazing lets the sun in
-	var west_open := [[11.0, 17.0, 0.0, 5.0, "shutter", 2.7], [27.8, 29.0, 0.0, 2.2, "door"], [39.0, 45.0, 0.0, 5.0, "open"]]
+	var west_open := [[11.0, 17.0, 0.0, 5.0, "shutter", 2.7], [27.4, 29.0, 0.0, 2.2, "door"], [39.0, 45.0, 0.0, 5.0, "open"]]
 	for k in 9:
 		west_open.append([1.3 + k * 6.0, 4.7 + k * 6.0, win_v[0], win_v[1], "win"])
 	wall(kit, Vector3(WX0, 0, WZ1), Vector3(WX0, 0, WZ0), WH, t, west_open, mats, split, ["concrete", "metal"], Vector3.LEFT)
@@ -131,7 +131,7 @@ static func _warehouse(kit: WKit, L) -> void:
 	for u in [[1.0, 5.0], [15.0, 24.0], [34.0, 41.0]]:
 		south_open.append([u[0], u[1], win_v[0], win_v[1], "win"])
 	wall(kit, Vector3(WX0, 0, WZ1), Vector3(WX1, 0, WZ1), WH, t, south_open, mats, split, ["concrete", "metal"], Vector3.BACK)
-	wall(kit, Vector3(WX1, 0, WZ1), Vector3(WX1, 0, WZ0), WH, t, [[24.8, 26.0, 0.0, 2.2, "door"], [36.0, 44.0, win_v[0], win_v[1], "win"]], mats, split, ["concrete", "metal"], Vector3.RIGHT)
+	wall(kit, Vector3(WX1, 0, WZ1), Vector3(WX1, 0, WZ0), WH, t, [[24.4, 26.0, 0.0, 2.2, "door"], [36.0, 44.0, win_v[0], win_v[1], "win"]], mats, split, ["concrete", "metal"], Vector3.RIGHT)
 	wall(kit, Vector3(WX1, 0, WZ0), Vector3(WX0, 0, WZ0), WH, t, [[18.0, 24.0, 0.0, 5.5, "open"], [4.0, 12.0, win_v[0], win_v[1], "win"], [30.0, 38.0, win_v[0], win_v[1], "win"]], mats, split, ["concrete", "metal"], Vector3.FORWARD)
 	# gables
 	var xm := (WX0 + WX1) * 0.5
@@ -221,7 +221,7 @@ static func loaded_pallet(kit: WKit, p: Vector3, yaw: float, kind: int, gh: floa
 						kit.box_geo("cardboard", Vector3(0.56, 0.32, 0.46), Transform3D(bs * Basis(Vector3.UP, kit.rng.randf_range(-0.04, 0.04)), top + bs * off), Color(v, v, v), 0.0, "detail")
 			gh = rows * 0.33
 		1:
-			kit.box_geo("tarp", Vector3(1.16, gh, 0.98), Transform3D(bs, top + Vector3(0, gh * 0.5, 0)), Color(0.9, 0.92, 0.95), 0.06, "detail")
+			kit.box_geo("tarp", Vector3(1.16, gh, 0.98), Transform3D(bs, top + Vector3(0, gh * 0.5, 0)), Color(0.66, 0.68, 0.7), 0.0, "detail")
 		2:
 			for cx in 2:
 				for cz in 2:
@@ -437,14 +437,14 @@ static func _office(kit: WKit, L) -> void:
 	var m2 := ["plaster", "plaster", "plaster_in", "plaster_in"]
 	var sf := ["concrete", "concrete"]
 	# ground floor walls
-	wall(kit, Vector3(OX0, 0, OZ0), Vector3(OX1, 0, OZ0), F2, t, [[6.0, 7.4, 0.0, 2.3, "door"], [1.0, 4.0, 1.0, 2.3, "win"], [9.0, 12.0, 1.0, 2.3, "win"], [13.5, 15.0, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.FORWARD)
-	wall(kit, Vector3(OX0, 0, OZ1), Vector3(OX0, 0, OZ0), F2, t, [[8.1, 9.5, 0.0, 2.3, "door"], [2.0, 5.0, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.LEFT)
-	wall(kit, Vector3(OX1, 0, OZ1), Vector3(OX0, 0, OZ1), F2, t, [[3.6, 5.0, 0.0, 2.3, "door"], [7.0, 10.0, 1.0, 2.3, "win"], [11.5, 14.5, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.BACK)
+	wall(kit, Vector3(OX0, 0, OZ0), Vector3(OX1, 0, OZ0), F2, t, [[5.8, 7.4, 0.0, 2.3, "door"], [1.0, 4.0, 1.0, 2.3, "win"], [9.0, 12.0, 1.0, 2.3, "win"], [13.5, 15.0, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.FORWARD)
+	wall(kit, Vector3(OX0, 0, OZ1), Vector3(OX0, 0, OZ0), F2, t, [[7.9, 9.5, 0.0, 2.3, "door"], [2.0, 5.0, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.LEFT)
+	wall(kit, Vector3(OX1, 0, OZ1), Vector3(OX0, 0, OZ1), F2, t, [[3.4, 5.0, 0.0, 2.3, "door"], [7.0, 10.0, 1.0, 2.3, "win"], [11.5, 14.5, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.BACK)
 	wall(kit, Vector3(OX1, 0, OZ0), Vector3(OX1, 0, OZ1), F2, t, [[3.0, 6.0, 1.0, 2.3, "win"]], m1, 0.6, sf, Vector3.RIGHT)
 	# upper floor walls (+ parapet)
 	var hh := ROOF - F2 + 0.6
 	wall(kit, Vector3(OX0, F2, OZ0), Vector3(OX1, F2, OZ0), hh, t, [[1.0, 5.0, 0.9, 2.5, "win"], [7.0, 11.0, 0.9, 2.5, "win"], [12.0, 15.0, 0.9, 2.5, "win"]], m2, 9.0, sf, Vector3.FORWARD)
-	wall(kit, Vector3(OX0, F2, OZ1), Vector3(OX0, F2, OZ0), hh, t, [[6.2, 7.5, 0.0, 2.3, "door"], [1.5, 4.5, 0.9, 2.5, "win"], [9.0, 11.0, 0.9, 2.5, "win"]], m2, 9.0, sf, Vector3.LEFT)
+	wall(kit, Vector3(OX0, F2, OZ1), Vector3(OX0, F2, OZ0), hh, t, [[6.0, 7.6, 0.0, 2.3, "door"], [1.5, 4.5, 0.9, 2.5, "win"], [9.0, 11.0, 0.9, 2.5, "win"]], m2, 9.0, sf, Vector3.LEFT)
 	wall(kit, Vector3(OX1, F2, OZ1), Vector3(OX0, F2, OZ1), hh, t, [[1.0, 4.0, 0.9, 2.5, "win"], [6.0, 9.0, 0.9, 2.5, "win"], [11.0, 14.0, 0.9, 2.5, "win"]], m2, 9.0, sf, Vector3.BACK)
 	wall(kit, Vector3(OX1, F2, OZ0), Vector3(OX1, F2, OZ1), hh, t, [[1.0, 4.0, 0.9, 2.5, "win"], [7.0, 9.5, 0.9, 2.5, "win"]], m2, 9.0, sf, Vector3.RIGHT)
 	# floor band / cornice lines
@@ -466,17 +466,17 @@ static func _office(kit: WKit, L) -> void:
 	slab.call(sx0, sx1, sz0, sz1, ROOF)
 	kit.box_geo("concrete_dark", Vector3(OX1 - OX0 + 0.1, 0.06, OZ1 - OZ0 + 0.1), Transform3D(Basis.IDENTITY, Vector3((OX0 + OX1) * 0.5, ROOF + 0.03, (OZ0 + OZ1) * 0.5)), Color(0.8, 0.8, 0.8))
 	# interior partitions
-	wall(kit, Vector3(30.0, 0, sz0), Vector3(30.0, 0, sz1), F2 - 0.25, 0.12, [[4.8, 6.0, 0.0, 2.2, "door"]], ["plaster_in", "plaster_in"], 9.0, sf)
-	wall(kit, Vector3(sx0, F2, 41.0), Vector3(33.0, F2, 41.0), ROOF - F2 - 0.25, 0.12, [[5.0, 6.2, 0.0, 2.2, "door"]], ["plaster_in", "plaster_in"], 9.0, sf)
+	wall(kit, Vector3(30.0, 0, sz0), Vector3(30.0, 0, sz1), F2 - 0.25, 0.12, [[4.6, 6.2, 0.0, 2.2, "door"]], ["plaster_in", "plaster_in"], 9.0, sf)
+	wall(kit, Vector3(sx0, F2, 41.0), Vector3(33.0, F2, 41.0), ROOF - F2 - 0.25, 0.12, [[4.8, 6.4, 0.0, 2.2, "door"]], ["plaster_in", "plaster_in"], 9.0, sf)
 	# internal stair (east side, rising north) + rail around the hole
-	Layout.stair(kit, L, Vector3(36.95, 0.0, 45.45), Vector3(0, 0, -1), F2, 1.15, [1.0], "concrete")
+	Layout.stair(kit, L, Vector3(36.95, 0.0, 45.45), Vector3(0, 0, -1), F2, 1.5, [1.0], "concrete")
 	kit.solid(Vector3(0.06, 1.0, sz1 - hz0), Transform3D(Basis.IDENTITY, Vector3(hx0 - 0.03, F2 + 0.5, (hz0 + sz1) * 0.5)), "metal")
 	kit.pipe("steel", Vector3(hx0 - 0.03, F2 + 1.0, hz0), Vector3(hx0 - 0.03, F2 + 1.0, sz1), 0.025, Color(0.3, 0.3, 0.3), 6)
 	for z: float in [hz0, (hz0 + sz1) * 0.5, sz1]:
 		kit.pipe("steel", Vector3(hx0 - 0.03, F2, z), Vector3(hx0 - 0.03, F2 + 1.0, z), 0.02, Color(0.3, 0.3, 0.3), 5)
 	# external steel stair on the west façade to the upper door
-	Layout.stair(kit, L, Vector3(21.2, 0.0, 45.7), Vector3(0, 0, -1), F2, 1.15, [1.0])
-	var lc := Vector3(21.15, F2, 39.05)
+	Layout.stair(kit, L, Vector3(21.05, 0.0, 45.7), Vector3(0, 0, -1), F2, 1.5, [1.0])
+	var lc := Vector3(21.0, F2, 39.05)
 	kit.box_geo("plate", Vector3(1.45, 0.08, 2.3), Transform3D(Basis.IDENTITY, lc + Vector3(0, -0.04, 0)), Color(0.8, 0.8, 0.8))
 	kit.solid(Vector3(1.45, 0.14, 2.3), Transform3D(Basis.IDENTITY, lc + Vector3(0, -0.07, 0)), "metal")
 	kit.solid(Vector3(0.06, 1.05, 2.3), Transform3D(Basis.IDENTITY, lc + Vector3(-0.72, 0.52, 0)), "metal")

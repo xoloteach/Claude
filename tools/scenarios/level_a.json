@@ -1,0 +1,13 @@
+{"description": "Level art review A (yaw 0 = north/-Z, +90 = west). Quality 1 for SwiftShader speed.",
+ "steps": [
+  {"eval": "window.level_stats = 1"},
+  {"wait": 5000}, {"screenshot": "00_menu"},
+  {"godot": "set quality 1"},
+  {"godot": "start"}, {"godot": "god"}, {"wait": 3000},
+  {"screenshot": "01_spawn"},
+  {"godot": "teleport -49 0.1 55"}, {"godot": "face 0 1"}, {"wait": 2000}, {"screenshot": "03_quay_north"},
+  {"godot": "teleport -48 0.1 5"}, {"godot": "face 100 4"}, {"wait": 2000}, {"screenshot": "04_quay_sunset"},
+  {"godot": "teleport 52 0.1 -22"}, {"godot": "face 80 12"}, {"wait": 2000}, {"screenshot": "06_warehouse_shafts"},
+  {"godot": "teleport 13 0.1 42"}, {"godot": "face 0 2"}, {"wait": 2000}, {"screenshot": "07_road"},
+  {"godot": "state"}
+ ]}

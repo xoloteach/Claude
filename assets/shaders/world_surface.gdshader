@@ -28,6 +28,7 @@ uniform float streaks = 0.0;
 uniform vec4 streak_color : source_color = vec4(0.32, 0.17, 0.08, 1.0);
 uniform float use_vcolor = 1.0;
 uniform float blend_sharp = 5.0;
+uniform float flatten = 0.0;
 uniform float ao_light_affect = 0.5;
 uniform float emission_from_vcolor_alpha = 0.0;
 uniform vec4 emission_color : source_color = vec4(1.0, 0.8, 0.5, 1.0);
@@ -96,6 +97,7 @@ void fragment() {
 	float m2 = texture(tex_macro, wpos.xz * 0.0071 + vec2(0.37, 0.11)).r;
 	alb *= mix(1.0 - macro_strength, 1.0 + macro_strength * 0.6, m * 0.6 + m2 * 0.4);
 
+	alb = mix(alb, vec3(dot(alb, vec3(0.333))) * 0.35 + vec3(0.45), flatten);
 	vec3 vc = mix(vec3(1.0), COLOR.rgb, use_vcolor);
 	alb *= tint.rgb * vc;
 
@@ -116,7 +118,7 @@ void fragment() {
 		float top = stack_h - h;
 		float along = (abs(n.x) > abs(n.z)) ? wpos.z : wpos.x;
 		float s = texture(tex_macro, vec2(along * 0.9, wpos.y * 0.035 + along * 0.013)).r;
-		float sm = smoothstep(0.52, 0.78, s) * exp(-top * 0.55) * vert * streaks;
+		float sm = smoothstep(0.62, 0.85, s) * exp(-top * 0.9) * vert * streaks;
 		alb = mix(alb, streak_color.rgb, clamp(sm, 0.0, 0.85));
 		rough = mix(rough, 1.0, sm);
 	}

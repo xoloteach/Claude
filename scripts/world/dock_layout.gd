@@ -61,7 +61,7 @@ static func _ground(kit: WKit, L) -> void:
 	_rect(kit, "ground", 18.0, 66.0, 6.0, 48.0)
 	_rect(kit, "asphalt", 18.0, 66.0, 48.0, 66.0)
 	# expansion joints (multiplicative dark lines) on concrete zones
-	var jc := Color(0.35, 0.33, 0.3, 0.8)
+	var jc := Color(0.55, 0.53, 0.5, 0.55)
 	for zone in [[QUAY_X, -42.0, -64.0, 64.0, 5.0], [-42.0, 8.0, -64.0, -12.0, 6.0], [-42.0, 8.0, -4.0, 48.0, 6.0], [18.0, 64.0, 6.0, 48.0, 6.0], [18.0, 60.0, -48.0, 6.0, 7.0]]:
 		var x0: float = zone[0]
 		var x1: float = zone[1]
@@ -368,7 +368,7 @@ static func _stack(kit: WKit, L, x: float, zc: float, levels: int, colors: Array
 	# contact shadow under the stack
 	var sz := Vector2(C.W + 0.6, len + 0.6)
 	var r: float = flags.get("yaw", 0.0)
-	kit.ground_quad("blob", Vector3(x, 0.0, zc), sz, r, Color(0.35, 0.33, 0.3, 0.9), Vector2(0, 0.35))
+	kit.ground_quad("blob", Vector3(x, 0.0, zc), sz + Vector2(1.2, 1.2), r, Color(0.45, 0.43, 0.4, 0.8), Vector2(0, 0.75))
 
 
 ## A row of touching container columns: xs = x centres, levels per column, colours per column.
@@ -473,7 +473,7 @@ static func stair(kit: WKit, L, base: Vector3, dir: Vector3, top_y: float, width
 	return top
 
 
-static func catwalk(kit: WKit, L, a: Vector3, b: Vector3, width := 1.3) -> void:
+static func catwalk(kit: WKit, L, a: Vector3, b: Vector3, width := 1.9) -> void:
 	var d := (b - a)
 	d.y = 0.0
 	var length := d.length()
@@ -499,16 +499,16 @@ static func catwalk(kit: WKit, L, a: Vector3, b: Vector3, width := 1.3) -> void:
 static func _stairs_and_catwalks(kit: WKit, L) -> void:
 	var top_y := 2.0 * H
 	# stair on the east side of the M1/G4 platform, rising north from the cross road
-	var st := stair(kit, L, Vector3(1.75, 0.0, -12.3), Vector3(0, 0, -1), top_y, 1.2, [1.0])
+	var st := stair(kit, L, Vector3(1.9, 0.0, -12.3), Vector3(0, 0, -1), top_y, 1.6, [1.0])
 	# landing joins the container roof (x < 1.02)
-	var land_c := Vector3(1.75, top_y, st.z - 1.1)
-	kit.box_geo("grate", Vector3(1.4, 0.06, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0, -0.03, 0)), Color.WHITE)
-	kit.solid(Vector3(1.4, 0.12, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0, -0.06, 0)), "metal")
-	kit.solid(Vector3(0.06, 1.05, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0.72, 0.52, 0)), "metal")
-	kit.pipe("steel", land_c + Vector3(0.72, 1.05, -1.1), land_c + Vector3(0.72, 1.05, 1.1), 0.025, Color(0.75, 0.6, 0.12), 6)
+	var land_c := Vector3(1.8, top_y, st.z - 1.1)
+	kit.box_geo("grate", Vector3(1.8, 0.06, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0, -0.03, 0)), Color.WHITE)
+	kit.solid(Vector3(1.8, 0.12, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0, -0.06, 0)), "metal")
+	kit.solid(Vector3(0.06, 1.05, 2.2), Transform3D(Basis.IDENTITY, land_c + Vector3(0.9, 0.52, 0)), "metal")
+	kit.pipe("steel", land_c + Vector3(0.9, 1.05, -1.1), land_c + Vector3(0.9, 1.05, 1.1), 0.025, Color(0.75, 0.6, 0.12), 6)
 	for zz: float in [-1.1, 1.1]:
-		kit.box_geo("steel", Vector3(0.1, top_y, 0.1), Transform3D(Basis.IDENTITY, Vector3(land_c.x + 0.6, top_y * 0.5, land_c.z + zz)), Color(0.33, 0.35, 0.36))
-		kit.pipe("steel", land_c + Vector3(0.72, 0, zz), land_c + Vector3(0.72, 1.05, zz), 0.022, Color(0.75, 0.6, 0.12), 5)
+		kit.box_geo("steel", Vector3(0.1, top_y, 0.1), Transform3D(Basis.IDENTITY, Vector3(land_c.x + 0.8, top_y * 0.5, land_c.z + zz)), Color(0.33, 0.35, 0.36))
+		kit.pipe("steel", land_c + Vector3(0.9, 0, zz), land_c + Vector3(0.9, 1.05, zz), 0.022, Color(0.75, 0.6, 0.12), 5)
 	# catwalk bridges at 5.18 m: G4 -> G3 and G3 -> G2 (over the central lane)
 	catwalk(kit, L, Vector3(-6.42, top_y, ROW_M1 - 2.0), Vector3(-11.28, top_y, ROW_M1 - 2.0))
 	catwalk(kit, L, Vector3(-16.22, top_y, ROW_M1 + 1.5), Vector3(-24.88, top_y, ROW_M1 + 1.5))
@@ -599,7 +599,7 @@ static func _boundaries(kit: WKit, L) -> void:
 static func _spawns(L) -> void:
 	for p in [
 		Vector3(-50.0, 0, -58.0), Vector3(-30.0, 0, -56.0), Vector3(-10.0, 0, -56.0), Vector3(13.0, 0, -57.0),
-		Vector3(30.0, 0, -57.0), Vector3(52.0, 0, -57.0), Vector3(61.8, 0, -30.0), Vector3(61.8, 0, 2.0),
+		Vector3(30.0, 0, -57.0), Vector3(57.0, 0, -58.5), Vector3(61.8, 0, -30.0), Vector3(61.8, 0, 2.0),
 		Vector3(40.0, 0, -30.0), Vector3(-50.0, 0, -18.0), Vector3(-37.0, 0, -8.0), Vector3(55.0, 0, 28.0),
 		Vector3(-50.0, 0, 38.0), Vector3(4.5, 0, -8.0), Vector3(30.0, 0, -8.0), Vector3(-19.0, 0, -45.0),
 	]:

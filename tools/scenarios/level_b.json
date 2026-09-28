@@ -1,0 +1,13 @@
+{"description": "Level art review B: elevated / interiors / enemy side.",
+ "steps": [
+  {"eval": "window.level_stats = 1"},
+  {"wait": 3000},
+  {"godot": "set quality 1"},
+  {"godot": "start"}, {"godot": "god"}, {"wait": 3000},
+  {"godot": "teleport -14 5.3 -20.5"}, {"godot": "face 95 -4"}, {"wait": 2000}, {"screenshot": "08_catwalk"},
+  {"godot": "teleport 27 3.6 40"}, {"godot": "face 10 0"}, {"wait": 2000}, {"screenshot": "09_office_up"},
+  {"godot": "teleport 0 0.1 -8"}, {"godot": "face -80 6"}, {"wait": 2000}, {"screenshot": "10_warehouse_facade"},
+  {"godot": "teleport -20 0.1 -56"}, {"godot": "face 180 0"}, {"wait": 2000}, {"screenshot": "11_north_road"},
+  {"godot": "teleport -19.5 0.1 12"}, {"godot": "face 0 2"}, {"wait": 2000}, {"screenshot": "02_center_lane"},
+  {"godot": "state"}
+ ]}

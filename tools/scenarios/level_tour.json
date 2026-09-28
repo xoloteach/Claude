@@ -1,0 +1,18 @@
+{"description": "Level art review: menu flythrough + key areas of DOCKYARD (yaw 0 = north/-Z, +90 = west).",
+ "steps": [
+  {"wait": 6000}, {"screenshot": "00_menu"},
+  {"godot": "set quality 2"},
+  {"godot": "start"}, {"godot": "god"}, {"wait": 4000},
+  {"screenshot": "01_spawn"},
+  {"godot": "teleport -19.5 0.1 12"}, {"godot": "face 0 2"}, {"wait": 3000}, {"screenshot": "02_center_lane"},
+  {"godot": "teleport -49 0.1 55"}, {"godot": "face 0 1"}, {"wait": 3000}, {"screenshot": "03_quay_north"},
+  {"godot": "teleport -48 0.1 5"}, {"godot": "face 100 4"}, {"wait": 3000}, {"screenshot": "04_quay_sunset"},
+  {"godot": "teleport 30 0.1 -4"}, {"godot": "face 0 6"}, {"wait": 3000}, {"screenshot": "05_warehouse_in"},
+  {"godot": "teleport 52 0.1 -22"}, {"godot": "face 80 12"}, {"wait": 3000}, {"screenshot": "06_warehouse_shafts"},
+  {"godot": "teleport 13 0.1 42"}, {"godot": "face 0 2"}, {"wait": 3000}, {"screenshot": "07_road"},
+  {"godot": "teleport -14 5.3 -20.5"}, {"godot": "face 95 -4"}, {"wait": 3000}, {"screenshot": "08_catwalk"},
+  {"godot": "teleport 27 3.6 40"}, {"godot": "face 10 0"}, {"wait": 3000}, {"screenshot": "09_office_up"},
+  {"godot": "teleport 0 0.1 -8"}, {"godot": "face -80 6"}, {"wait": 3000}, {"screenshot": "10_warehouse_facade"},
+  {"godot": "teleport -20 0.1 -56"}, {"godot": "face 180 0"}, {"wait": 3000}, {"screenshot": "11_north_road"},
+  {"godot": "state"}
+ ]}

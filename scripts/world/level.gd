@@ -40,6 +40,7 @@ var dust: CPUParticles3D
 var quality := 2
 var sun_dir := Vector3(-0.9, 0.2, 0.3)   # toward the sun (set in configure_environment)
 var _t := 0.0
+var _stat_t := 3.0
 var _spark_timer := 2.0
 var sparks: Array = []
 
@@ -108,9 +109,9 @@ func _define_materials() -> void:
 	k.def_surface("brick", "brick", {"scale": 0.45, "tint": Color(0.8, 0.72, 0.68), "ground_ao": 0.55, "grime": 0.5})
 	k.def_surface("cladding", "corrugated_metal", {"scale": 0.42, "tint": Color(0.62, 0.66, 0.66), "stack_h": 10.02, "streaks": 0.65, "ground_ao": 0.3, "grime": 0.3, "metallic": 0.25, "rough_mul": 0.9})
 	k.def_surface("cladding_dark", "corrugated_metal", {"scale": 0.42, "tint": Color(0.32, 0.33, 0.33), "ground_ao": 0.0, "grime": 0.0, "metallic": 0.3})
-	var cont = k.def_surface("container", "corrugated_metal", {"scale": 0.42, "normal_strength": 0.35, "stack_h": 2.59, "streaks": 0.85, "grime": 0.5, "grime_height": 0.7, "ground_ao": 0.4, "ground_ao_height": 0.6, "metallic": 0.15, "rough_mul": 0.95, "macro_strength": 0.18})
+	var cont = k.def_surface("container", "corrugated_metal", {"scale": 0.42, "normal_strength": 0.35, "stack_h": 2.59, "streaks": 0.55, "grime": 0.5, "grime_height": 0.7, "ground_ao": 0.4, "ground_ao_height": 0.6, "metallic": 0.15, "rough_mul": 0.95, "macro_strength": 0.18})
 	k.def_mat("container_far", cont)
-	k.def_surface("steel", "painted_metal", {"scale": 0.6, "metallic": 0.35, "rough_mul": 0.85, "ground_ao": 0.3, "grime": 0.25, "macro_strength": 0.15})
+	k.def_surface("steel", "painted_metal", {"flatten": 0.75, "scale": 0.9, "metallic": 0.35, "rough_mul": 0.85, "ground_ao": 0.3, "grime": 0.25, "macro_strength": 0.15})
 	k.def_surface("rusty", "rusty_metal", {"scale": 0.35, "tint": Color(0.7, 0.66, 0.62), "metallic": 0.4, "ground_ao": 0.3, "grime": 0.3})
 	k.def_surface("hull", "painted_metal", {"scale": 0.12, "stack_h": 12.02, "streaks": 1.0, "streak_color": Color(0.3, 0.15, 0.07), "grime": 0.0, "ground_ao": 0.0, "metallic": 0.3, "macro_strength": 0.35})
 	k.def_surface("plate", "metal_plate", {"scale": 0.8, "metallic": 0.6, "ground_ao": 0.0, "grime": 0.0})
@@ -139,7 +140,7 @@ func _define_materials() -> void:
 	k.def_mat("emit_red", _emissive(Color(1.0, 0.12, 0.06), 6.0))
 	k.def_mat("emit_green", _emissive(Color(0.2, 1.0, 0.45), 3.0))
 	k.def_mat("emit_window", _emissive(Color(1.0, 0.78, 0.52), 1.6))
-	k.def_mat("emit_sky", _emissive(Color(0.75, 0.8, 0.85), 0.9))
+	k.def_mat("emit_sky", _emissive(Color(0.75, 0.8, 0.85), 0.45))
 	k.def_mat("black", MeshKit.flat(Color(0.03, 0.03, 0.03), 0.9))
 	var bd := ShaderMaterial.new()
 	bd.shader = load("res://assets/shaders/world_backdrop.gdshader")
@@ -320,7 +321,7 @@ func configure_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.sky_rotation = Vector3(0.0, deg_to_rad(SKY_YAW_DEG), 0.0)
 	if env.sky and env.sky.sky_material is PanoramaSkyMaterial:
 		(env.sky.sky_material as PanoramaSkyMaterial).energy_multiplier = 1.0
-	env.background_energy_multiplier = 1.0
+	env.background_energy_multiplier = 0.8
 	sun.global_basis = Basis.looking_at(-sun_dir, Vector3.UP)
 	sun.light_color = Color(1.0, 0.7, 0.46)
 	sun.light_energy = 2.6
@@ -335,23 +336,23 @@ func configure_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.ambient_light_energy = 0.75
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	env.tonemap_exposure = 1.0
+	env.tonemap_exposure = 0.92
 	env.tonemap_white = 10.0
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	env.fog_light_color = Color(0.7, 0.55, 0.45)
 	env.fog_light_energy = 0.85
-	env.fog_sun_scatter = 0.45
-	env.fog_density = 0.0052
-	env.fog_aerial_perspective = 0.35
+	env.fog_sun_scatter = 0.18
+	env.fog_density = 0.0075
+	env.fog_aerial_perspective = 0.5
 	env.fog_sky_affect = 0.45
 	env.fog_height = 3.0
 	env.fog_height_density = 0.025
 	env.glow_enabled = true
-	env.glow_intensity = 0.55
+	env.glow_intensity = 0.4
 	env.glow_strength = 1.0
 	env.glow_bloom = 0.06
-	env.glow_hdr_threshold = 1.0
+	env.glow_hdr_threshold = 1.2
 	env.glow_hdr_scale = 2.0
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.adjustment_enabled = true
@@ -362,6 +363,39 @@ func configure_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	var wm: ShaderMaterial = kit.mats.get("water")
 	if wm:
 		wm.set_shader_parameter("sky_tint", Color(0.62, 0.46, 0.38))
+
+
+var _checked := false
+
+## Debug self-test (run with `godot --headless -- --test --level-check`): navmesh coverage / reachability.
+func _self_check() -> void:
+	var map := nav_region.get_navigation_map()
+	var sp := get_player_spawn().origin
+	var start := NavigationServer3D.map_get_closest_point(map, sp)
+	var sp_ok := start.distance_to(sp) < 1.0
+	var sh := CapsuleShape3D.new()
+	sh.radius = 0.34
+	sh.height = 1.8
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = sh
+	q.transform = Transform3D(Basis.IDENTITY, sp + Vector3(0, 0.95, 0))
+	q.collision_mask = Game.L_WORLD
+	var blocked := not get_world_3d().direct_space_state.intersect_shape(q, 1).is_empty()
+	print("[level-check] player spawn on navmesh=%s, capsule blocked=%s" % [sp_ok, blocked])
+	var targets := {"catwalk": Vector3(-14.0, 5.18, -20.5), "stack_top_stair": Vector3(-2.7, 5.18, -24.0), "office_upper": Vector3(27.0, 3.5, 40.0),
+		"warehouse": Vector3(40.0, 0.0, -20.0), "quay_north": Vector3(-50.0, 0.0, -55.0), "east_alley": Vector3(61.8, 0.0, -10.0),
+		"truck_yard": Vector3(-25.0, 0.0, 60.0), "storage": Vector3(40.0, 0.0, -55.0)}
+	for e in get_enemy_spawns():
+		targets["spawn_%d_%d" % [roundi(e.x), roundi(e.z)]] = e
+	var fails := 0
+	for k in targets:
+		var t: Vector3 = targets[k]
+		var path := NavigationServer3D.map_get_path(map, start, t, true)
+		var ok := path.size() > 0 and path[path.size() - 1].distance_to(t) < 1.2
+		if not ok:
+			fails += 1
+		print("[level-check] path to %s %s: %s (end %s)" % [k, t, "OK" if ok else "FAIL", path[path.size() - 1] if path.size() > 0 else "none"])
+	print("[level-check] enemy spawns=%d/%d cover points=%d path failures=%d" % [get_enemy_spawns().size(), _spawns_raw.size(), get_cover_points().size(), fails])
 
 
 func apply_quality(q: int) -> void:
@@ -417,6 +451,19 @@ func _process(delta: float) -> void:
 		var fl: OmniLight3D = s[1]
 		if fl:
 			fl.light_energy = maxf(0.0, fl.light_energy - delta * 12.0)
+	if not _checked and _t > 1.5 and OS.get_cmdline_user_args().has("--level-check") and _nav_ready():
+		_checked = true
+		_self_check()
+	_stat_t -= delta
+	if _stat_t <= 0.0:
+		_stat_t = 5.0
+		var want := OS.get_cmdline_user_args().has("--level-stats")
+		if OS.has_feature("web"):
+			want = str(JavaScriptBridge.eval("String(window.level_stats || 0)", true)) == "1"
+		if want:
+			print("[level] perf fps=%d draw_calls=%d objects=%d primitives=%d vram_mb=%d" % [Engine.get_frames_per_second(),
+				Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+				Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME), Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])
 	if dust and dust.emitting:
 		var cam := get_viewport().get_camera_3d()
 		if cam:

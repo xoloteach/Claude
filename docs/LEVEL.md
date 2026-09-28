@@ -67,3 +67,19 @@ No omni light casts shadows.
 - `--level-stats` also prints the vertex count per material.
 - On web, evaluating `window.level_stats = 1` prints draw calls, objects and primitives every 5 s.
 - `node tools/playtest.mjs level_a|level_b --viewport 960x540` produces review screenshots in `tools/shots/level_a|b/`.
+
+## Performance
+
+These numbers come from the web build under SwiftShader at quality 1.
+
+- **Build:** about 3.3 s. Around 2 s of that is loading textures and making the noise textures.
+- **Navmesh bake:** about 0.18 s.
+- **Geometry:** about 630k merged vertices in 448 batches.
+- **Draw calls:** 190–590 in the busiest views, with 90k–440k primitives including shadow passes.
+
+## Known issues
+
+- Crane steel still shows faint paint-chip speckle.
+- The water uses no depth, so it has no depth-based shoreline colour.
+- ReflectionProbe ambient-override interiors depend on Compatibility probe support.
+- The ornate glb street lamp is stylistically a little off for a port.

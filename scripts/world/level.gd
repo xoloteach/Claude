@@ -111,7 +111,7 @@ func _define_materials() -> void:
 	k.def_surface("cladding_dark", "corrugated_metal", {"scale": 0.42, "tint": Color(0.32, 0.33, 0.33), "ground_ao": 0.0, "grime": 0.0, "metallic": 0.3})
 	var cont = k.def_surface("container", "corrugated_metal", {"scale": 0.42, "normal_strength": 0.35, "stack_h": 2.59, "streaks": 0.55, "grime": 0.5, "grime_height": 0.7, "ground_ao": 0.4, "ground_ao_height": 0.6, "metallic": 0.15, "rough_mul": 0.95, "macro_strength": 0.18})
 	k.def_mat("container_far", cont)
-	k.def_surface("steel", "painted_metal", {"flatten": 0.75, "scale": 0.9, "metallic": 0.35, "rough_mul": 0.85, "ground_ao": 0.3, "grime": 0.25, "macro_strength": 0.15})
+	k.def_surface("steel", "painted_metal", {"flatten": 0.92, "scale": 0.9, "metallic": 0.35, "rough_mul": 0.85, "ground_ao": 0.3, "grime": 0.25, "macro_strength": 0.15})
 	k.def_surface("rusty", "rusty_metal", {"scale": 0.35, "tint": Color(0.7, 0.66, 0.62), "metallic": 0.4, "ground_ao": 0.3, "grime": 0.3})
 	k.def_surface("hull", "painted_metal", {"scale": 0.12, "stack_h": 12.02, "streaks": 1.0, "streak_color": Color(0.3, 0.15, 0.07), "grime": 0.0, "ground_ao": 0.0, "metallic": 0.3, "macro_strength": 0.35})
 	k.def_surface("plate", "metal_plate", {"scale": 0.8, "metallic": 0.6, "ground_ao": 0.0, "grime": 0.0})

@@ -1,8 +1,8 @@
-// IRONLINE — multiplicative darkening decal (fake contact AO, oil stains, scorch). Unshaded blend_mul, so it
+// IRONLINE — multiplicative darkening decal (fake contact AO, oil stains, scorch). Alpha-blended, so it
 // darkens whatever is below it without affecting lighting. UV in 0..1 over the quad; COLOR.a = strength,
 // UV2.x = shape (0 = soft rectangle, 1 = round blob with noisy edge), UV2.y = edge softness.
 shader_type spatial;
-render_mode blend_mul, depth_draw_never, cull_back, unshaded, fog_disabled;
+render_mode blend_mix, depth_draw_never, cull_back, unshaded;
 
 uniform sampler2D tex_macro : hint_default_white, filter_linear_mipmap, repeat_enable;
 uniform float pull = 0.0016;
@@ -29,5 +29,8 @@ void fragment() {
 	}
 	float k = 1.0 - smoothstep(1.0 - soft, 1.0, d);
 	float s = clamp(k * COLOR.a, 0.0, 1.0);
-	ALBEDO = mix(vec3(1.0), COLOR.rgb, s);
+	// COLOR.rgb = multiplier the surface is darkened toward (0 = black); emulated with alpha blending
+	float dark = 1.0 - dot(COLOR.rgb, vec3(0.333));
+	ALBEDO = COLOR.rgb * 0.12;
+	ALPHA = clamp(s * dark, 0.0, 1.0);
 }

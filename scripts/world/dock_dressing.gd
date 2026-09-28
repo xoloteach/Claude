@@ -145,7 +145,7 @@ static func _decals(kit: WKit, L) -> void:
 		for i in n:
 			var p := Vector3(kit.rng.randf_range(z[0], z[1]), 0.0, kit.rng.randf_range(z[2], z[3]))
 			var s := kit.rng.randf_range(2.5, 6.5)
-			kit.ground_quad("dirt_decal", p, Vector2(s, s * kit.rng.randf_range(0.6, 1.0)), kit.rng.randf_range(0, 180), Color(0.5, 0.47, 0.43, 0.6))
+			kit.ground_quad("dirt_decal", p, Vector2(s, s * kit.rng.randf_range(0.6, 1.0)), kit.rng.randf_range(0, 180), Color(0.42, 0.4, 0.38, 0.55))
 	# grime along wall bases (dark soft strips)
 	for w in [[Vector3(17.7, 0, -21.0), Vector2(1.2, 54.0)], [Vector3(39.0, 0, 6.3), Vector2(42.0, 1.2)], [Vector3(60.3, 0, -21.0), Vector2(1.0, 54.0)], [Vector3(39.0, 0, -48.3), Vector2(42.0, 1.2)],
 			[Vector3(63.3, 0, 0.0), Vector2(1.2, 126.0)], [Vector3(18.3, 0, -21.0), Vector2(1.0, 54.0)], [Vector3(39.0, 0, 5.7), Vector2(42.0, 1.0)], [Vector3(-3.0, 0, -62.0), Vector2(90.0, 1.4)]]:

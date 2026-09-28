@@ -26,7 +26,6 @@ const HAND_R_AIM := Transform3D(
 	Vector3(-0.194536, 1.406235, 0.34749))
 
 static var _scene: PackedScene
-static var _tree_root: AnimationNodeBlendTree
 static var _extra_lib: AnimationLibrary
 static var _body_mats := {}
 static var _gear_mats := {}
@@ -73,7 +72,13 @@ static func _load_shared() -> void:
 				if ap.has_animation(n):
 					_extra_lib.add_animation(n, ap.get_animation(n))
 		extra.free()
-	_tree_root = _build_tree()
+
+
+static func clear_cache() -> void:
+	_scene = null
+	_extra_lib = null
+	_body_mats.clear()
+	_gear_mats.clear()
 
 
 static func _anim(n: String, loop := true) -> AnimationNodeAnimation:
@@ -198,7 +203,9 @@ func build(p_arch: Dictionary, variant: int, p_enemy: Node) -> void:
 	_ba_chest = skeleton.get_node_or_null("BA_spine_03")
 	tree = AnimationTree.new()
 	tree.name = "AnimTree"
-	tree.tree_root = _tree_root
+	# NOTE: a shared (or duplicated) tree_root only animates the upper body of the first AnimationTree that uses it
+	# (filtered nodes), so every enemy builds its own node graph (cheap, ~30 nodes).
+	tree.tree_root = _build_tree()
 	model.add_child(tree)
 	tree.root_node = NodePath("..")
 	tree.anim_player = NodePath("../AnimationPlayer")
@@ -292,14 +299,14 @@ func _build_gear(variant: int) -> void:
 		var hm := MeshInstance3D.new()
 		var sph := SphereMesh.new()
 		sph.radius = 0.132 if helm == "helmet" else 0.142
-		sph.height = sph.radius * 2.0
+		sph.height = sph.radius   # hemisphere: height = dome height
 		sph.is_hemisphere = true
 		sph.radial_segments = 20
 		sph.rings = 8
 		hm.mesh = sph
 		var hcol: Color = g.get("helmet_color", gear_col)
 		hm.material_override = _gear_mat("poly", hcol)
-		hm.transform = _rest_local("Head", Transform3D(Basis.from_scale(Vector3(1.0, 0.95, 1.12)), Vector3(0, 1.715, -0.005)))
+		hm.transform = _rest_local("Head", Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 1.12)), Vector3(0, 1.705, -0.005)))
 		head.add_child(hm)
 		# rim + strap pads
 		_gbox(head, "Head", Vector3(0.27, 0.035, 0.30), Vector3(0, 1.72, -0.01), _gear_mat("poly", hcol.darkened(0.1)), Vector3.ZERO, 0.015)
@@ -495,9 +502,10 @@ func update_rig(delta: float, vel_local: Vector3, crouch: bool, sprint: bool, ai
 	_aim_amount = move_toward(_aim_amount, tgt_aim, delta * (4.0 if tgt_aim > _aim_amount else 2.5))
 	_aim_pitch = lerpf(_aim_pitch, pitch, clampf(delta * 10.0, 0.0, 1.0))
 	var pitch_blend := clampf(_aim_pitch / (PI * 0.5), -0.85, 0.85)
-	var low := -0.42 if not sprint else -0.55
+	var low := -0.42 if not sprint else -0.28
 	tree.set("parameters/aim/blend_amount", lerpf(low, pitch_blend, _aim_amount))
 	aim_mod.twist = -_leg_yaw * lerpf(0.55, 1.0, _aim_amount) if not sprint else -_leg_yaw
+	aim_mod.level_weight = _aim_amount if not sprint else 0.65
 	aim_mod.tick(delta)
 	# animation LOD: advance the tree every Nth frame with accumulated time
 	_anim_accum += delta

@@ -1,0 +1,185 @@
+{
+ "description": "AI visual check: archetype line-up in several poses (needs the 'ai' debug command), then live combat, ADS, kills/ragdolls.",
+ "steps": [
+  {
+   "wait": 1500
+  },
+  {
+   "click": [
+    480,
+    270
+   ]
+  },
+  {
+   "godot": "start"
+  },
+  {
+   "wait": 2500
+  },
+  {
+   "godot": "god"
+  },
+  {
+   "godot": "ai waves off"
+  },
+  {
+   "godot": "ai lineup aim 5"
+  },
+  {
+   "wait": 6000
+  },
+  {
+   "screenshot": "01_lineup_aim"
+  },
+  {
+   "godot": "ai pose low"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "02_lineup_low_ready"
+  },
+  {
+   "godot": "ai pose walk"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "03_lineup_walk"
+  },
+  {
+   "godot": "ai pose crouch"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "04_lineup_crouch"
+  },
+  {
+   "godot": "ai pose sprint"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "05_lineup_sprint"
+  },
+  {
+   "godot": "ai pose strafe"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "06_lineup_strafe"
+  },
+  {
+   "godot": "state"
+  },
+  {
+   "godot": "teleport 4.5 0.1 -1"
+  },
+  {
+   "godot": "face 90 -5"
+  },
+  {
+   "godot": "ai pose aim"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "07_side_aim"
+  },
+  {
+   "godot": "ai kill head"
+  },
+  {
+   "wait": 1500
+  },
+  {
+   "screenshot": "08_death_headshot"
+  },
+  {
+   "wait": 6000
+  },
+  {
+   "godot": "ai kill"
+  },
+  {
+   "wait": 2500
+  },
+  {
+   "screenshot": "09_death_body"
+  },
+  {
+   "wait": 8000
+  },
+  {
+   "screenshot": "10_ragdolls_settled"
+  },
+  {
+   "godot": "ai clear"
+  },
+  {
+   "godot": "teleport 0 0.1 4"
+  },
+  {
+   "godot": "face 0 0"
+  },
+  {
+   "godot": "spawn 3"
+  },
+  {
+   "wait": 8000
+  },
+  {
+   "screenshot": "11_spotted"
+  },
+  {
+   "wait": 8000
+  },
+  {
+   "screenshot": "12_combat"
+  },
+  {
+   "godot": "ads on"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "13_ads"
+  },
+  {
+   "godot": "fire on"
+  },
+  {
+   "wait": 5000
+  },
+  {
+   "screenshot": "14_firing"
+  },
+  {
+   "godot": "fire off"
+  },
+  {
+   "godot": "ads off"
+  },
+  {
+   "wait": 8000
+  },
+  {
+   "screenshot": "15_after"
+  },
+  {
+   "godot": "state"
+  },
+  {
+   "fps": "end"
+  }
+ ]
+}

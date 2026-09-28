@@ -10,6 +10,8 @@ var twist := 0.0          # radians, + = torso turns left (towards +X of the mod
 var pitch_extra := 0.0    # radians, + = look up
 var recoil := 0.0         # 0..1ish
 var _recoil_v := 0.0
+## 0..1: cancel the lower body's forward lean (crouch) on the aiming upper body so the rifle stays on target.
+var level_weight := 0.0
 var flinch := Vector3.ZERO
 var _flinch_v := Vector3.ZERO
 
@@ -65,6 +67,11 @@ func _process_modification() -> void:
 		if not _ready_bones:
 			return
 	var sk := get_skeleton()
+	if level_weight > 0.001:
+		var y := sk.get_bone_global_pose(_spine[0]).basis.y.normalized()
+		var cur := atan2(y.z, y.y)
+		var rest := 0.102   # spine_01 rest tilt (rad, forward)
+		_rotate_bone_global(sk, _spine[1], Vector3.RIGHT, (rest - cur) * level_weight)
 	for i in 3:
 		var b := _spine[i]
 		_rotate_bone_global(sk, b, Vector3.UP, twist * _weights[i])

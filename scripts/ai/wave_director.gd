@@ -8,6 +8,7 @@ extends Node
 const Cfg := preload("res://scripts/ai/ai_config.gd")
 const EnemyScript := preload("res://scripts/ai/enemy.gd")
 const CoverFinder := preload("res://scripts/ai/cover_finder.gd")
+const SoldierRig := preload("res://scripts/ai/soldier_rig.gd")
 
 signal wave_started(n: int)
 signal wave_cleared(n: int)
@@ -29,6 +30,7 @@ var enemies: Array[Node] = []
 var corpses: Array[Node] = []
 var spawn_t := 0.0
 var use_ragdolls := true
+var spawning := true         # debug: "ai waves off" pauses the wave flow (enemies keep fighting)
 var _last_grenade_t := -100.0
 var _t := 0.0
 var _token_t := 0.0
@@ -57,14 +59,31 @@ func stop() -> void:
 	phase = "idle"
 	queue.clear()
 	for e in enemies + corpses:
-		if is_instance_valid(e):
-			e.queue_free()
+		_despawn(e)
 	enemies.clear()
 	corpses.clear()
 	_tokens.clear()
 	CoverFinder.claims.clear()
 	for c in get_children():
-		c.queue_free()
+		if not c.is_in_group("enemy") and not c.has_method("take_damage"):
+			c.queue_free()
+
+
+## Disable first, free a moment later: pooled FX (muzzle flashes parented to the rifle) finish their timers.
+func _despawn(e: Node) -> void:
+	if not is_instance_valid(e) or e.is_queued_for_deletion():
+		return
+	e.remove_from_group("enemy")
+	e.process_mode = Node.PROCESS_MODE_DISABLED
+	(e as Node3D).visible = false
+	if e.get("rig") and e.rig.hitboxes:
+		e.rig.set_hitboxes_enabled(false)
+	(e as CollisionObject3D).collision_layer = 0
+	get_tree().create_timer(0.2, true, false, true).timeout.connect(e.queue_free)
+
+
+func _exit_tree() -> void:
+	SoldierRig.clear_cache()
 
 
 func alive_count() -> int:
@@ -101,6 +120,60 @@ func debug_spawn(n: int) -> void:
 			e.facing_yaw = atan2(d.x, d.z)
 			e.rotation.y = e.facing_yaw
 	Game.enemies_remaining.emit(remaining())
+
+
+## Debug commands (routed from Game.run_command("ai ...") when available):
+##   lineup [pose]  - one of each archetype 5 m in front of the player, frozen in a pose (aim/low/walk/jog/sprint/crouch/strafe/back)
+##   pose <pose>    - change the pose of lined-up enemies ("" / "live" releases them)
+##   clear          - remove all enemies
+##   waves on|off   - pause/resume wave spawning
+func debug_cmd(args: Array) -> void:
+	if args.is_empty():
+		return
+	match str(args[0]):
+		"lineup":
+			if player == null or not is_instance_valid(player):
+				player = Game.player as Node3D
+			if level == null:
+				level = Game.world.get("level") if Game.world else null
+			var pose: String = str(args[1]) if args.size() > 1 else "aim"
+			var cam: Camera3D = player.get("camera")
+			var fwd: Vector3 = -(cam.global_basis.z if cam else player.global_basis.z)
+			fwd.y = 0
+			fwd = fwd.normalized()
+			var side := Vector3(-fwd.z, 0, fwd.x)
+			var dist: float = float(args[2]) if args.size() > 2 else 5.0
+			var archs := ["rusher", "rifleman", "heavy"]
+			for i in archs.size():
+				var e := _spawn(archs[i], _snap(player.global_position + fwd * dist + side * (i - 1) * 1.5))
+				e.debug_pose = pose
+		"pose":
+			var pose: String = str(args[1]) if args.size() > 1 else ""
+			for e in enemies:
+				if is_instance_valid(e) and e.alive:
+					e.debug_pose = "" if pose == "live" else pose
+					if pose == "live":
+						e.awareness = 1.0
+						e._enter_combat()
+		"kill":
+			# kill the nearest live enemy with a body shot from the player (death/ragdoll check)
+			var best: Node3D = null
+			for e in enemies:
+				if is_instance_valid(e) and e.alive and (best == null or e.global_position.distance_to(player.global_position) < best.global_position.distance_to(player.global_position)):
+					best = e
+			if best:
+				var zone: String = str(args[1]) if args.size() > 1 else "body"
+				var hp_pos: Vector3 = best.aim_point() if zone != "head" else best.rig.head_pos()
+				var d: Vector3 = (hp_pos - player.global_position - Vector3.UP * 1.6).normalized()
+				best.take_damage(500.0, {"zone": zone, "pos": hp_pos, "dir": d, "normal": -d, "weapon": "DEBUG", "attacker": player})
+		"clear":
+			for e in enemies + corpses:
+				_despawn(e)
+			enemies.clear()
+			corpses.clear()
+			queue.clear()
+		"waves":
+			spawning = args.size() < 2 or str(args[1]) != "off"
 
 
 func _snap(p: Vector3) -> Vector3:
@@ -195,7 +268,7 @@ func _process(delta: float) -> void:
 	_t += delta
 	if player == null or not is_instance_valid(player):
 		return
-	match phase:
+	match phase if spawning else "paused":
 		"intro", "break":
 			phase_t -= delta
 			if phase_t <= 0.0:

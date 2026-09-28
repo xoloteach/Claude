@@ -6,7 +6,7 @@ const ARCHETYPES := {
 		"name": "RIFLEMAN", "hp": 100.0,
 		"walk": 2.0, "run": 4.5, "sprint": 5.5,
 		"weapon_model": "ar", "rpm": 600.0, "burst": [3, 6], "burst_pause": [0.35, 0.8], "mag": 30, "reload": 2.2,
-		"damage": [10.0, 14.0], "accuracy": 0.85, "range_pref": [12.0, 30.0], "max_range": 60.0,
+		"damage": [10.0, 14.0], "accuracy": 0.95, "range_pref": [12.0, 30.0], "max_range": 60.0,
 		"tracer_every": 2, "flash_scale": 0.85, "sound": "enemy_fire",
 		"peeks_before_move": [2, 4], "grenades": 1, "flank": false, "stagger_resist": 0.0,
 		"body_armor": 1.0, "reaction": [0.35, 0.7],

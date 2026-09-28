@@ -73,6 +73,9 @@ var suppressing := false
 var flinch_until := 0.0
 var _ping_t := 0.0
 var grenades := 0
+var _reload_pending := false
+var _throw_at := -1.0
+var _throw_target := Vector3.ZERO
 
 # --- cover
 var cover: Dictionary = {}   # {"pos", "peek", "stand"}
@@ -245,10 +248,42 @@ func take_damage(amount: float, info: Dictionary) -> Dictionary:
 
 
 # ================================================================== main loop
+## Debug/showcase pose: "", "aim", "low", "walk", "jog", "sprint", "crouch", "strafe", "back".
+var debug_pose := ""
+
+
+func _debug_pose_tick(delta: float) -> void:
+	var pl := Game.player as Node3D
+	if pl:
+		var d := pl.global_position - global_position
+		facing_yaw = atan2(d.x, d.z)
+		rotation.y = facing_yaw
+	var v := Vector3.ZERO
+	var aim := 1.0
+	var cr := false
+	var sp := false
+	match debug_pose:
+		"low": aim = 0.0
+		"walk": v = Vector3(0, 0, 2.0)
+		"jog": v = Vector3(0, 0, 4.5)
+		"sprint": v = Vector3(0, 0, 5.5); sp = true; aim = 0.0
+		"crouch": cr = true
+		"strafe": v = Vector3(2.0, 0, 0)
+		"back": v = Vector3(0, 0, -2.0)
+	var pitch := 0.0
+	if pl:
+		var dd := pl.global_position + Vector3.UP * 1.5 - (global_position + Vector3.UP * 1.45)
+		pitch = atan2(dd.y, Vector2(dd.x, dd.z).length())
+	rig.update_rig(delta, v, cr, sp, aim, pitch)
+
+
 func _physics_process(delta: float) -> void:
 	_t += delta
 	if not alive:
 		_update_dead(delta)
+		return
+	if debug_pose != "":
+		_debug_pose_tick(delta)
 		return
 	if player == null or not is_instance_valid(player):
 		player = Game.player as Node3D
@@ -263,6 +298,7 @@ func _physics_process(delta: float) -> void:
 		_think_t += Cfg.THINK_INTERVAL
 		_think()
 	mode_t += delta
+	_update_timers()
 	_move(delta)
 	_update_facing(delta)
 	_update_fire(delta)
@@ -592,10 +628,8 @@ func _start_reload() -> void:
 	reloading_until = _t + arch.reload
 	burst_left = 0
 	rig.play_reload()
-	Audio.play3d("enemy_reload", global_position + Vector3.UP * 1.3, -6.0, 0.05, 5.0, 40.0)
-	get_tree().create_timer(arch.reload * 0.85, false).timeout.connect(func():
-		if is_instance_valid(self) and alive:
-			mag_left = arch.mag)
+	Audio.play3d("mag_out", global_position + Vector3.UP * 1.3, -6.0, 0.05, 4.0, 35.0)
+	_reload_pending = true
 
 
 func _start_throw() -> void:
@@ -607,13 +641,22 @@ func _start_throw() -> void:
 	rig.play_throw()
 	var tgt := last_seen_pos + Vector3(randf_range(-1.5, 1.5), 0, randf_range(-1.5, 1.5))
 	face_override = tgt
-	get_tree().create_timer(0.55, false).timeout.connect(func():
-		if not is_instance_valid(self) or not alive:
-			return
+	_throw_at = _t + 0.55
+	_throw_target = tgt
+	Audio.play3d("grenade_pin", global_position + Vector3.UP * 1.5, -6.0, 0.05, 4.0, 30.0)
+
+
+func _update_timers() -> void:
+	if _reload_pending and _t >= reloading_until - arch.reload * 0.15:
+		_reload_pending = false
+		mag_left = arch.mag
+		Audio.play3d("mag_in", global_position + Vector3.UP * 1.3, -6.0, 0.05, 4.0, 35.0)
+	if _throw_at > 0.0 and _t >= _throw_at:
+		_throw_at = -1.0
 		var g := Grenade.new()
-		director.add_child(g)
+		(director if director else get_parent()).add_child(g)
 		var hand := global_position + Vector3.UP * 1.75 + Vector3(sin(facing_yaw), 0, cos(facing_yaw)) * 0.3
-		g.launch(hand, tgt, self))
+		g.launch(hand, _throw_target, self)
 
 
 # ================================================================== movement
@@ -786,7 +829,12 @@ func hit_chance() -> float:
 	var dv = Game.settings.get("difficulty", 1)
 	if dv is int or dv is float:
 		diff = [0.7, 1.0, 1.25][clampi(int(dv), 0, 2)]
-	return clampf(arch.accuracy * rf * mf * stance * ramp * self_move * fl * token * mercy * diff, 0.0, 0.95)
+	# input fairness: touch / gamepad players aim slower than mouse users -> enemies are slightly less accurate
+	var dev := 1.0
+	match Game.input_mode:
+		"touch": dev = 0.78
+		"pad": dev = 0.9
+	return clampf(arch.accuracy * rf * mf * stance * ramp * self_move * fl * token * mercy * diff * dev, 0.0, 0.95)
 
 
 func _fire_shot() -> void:

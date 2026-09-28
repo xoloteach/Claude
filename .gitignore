@@ -1,0 +1,9 @@
+.godot/
+/build/
+/export/
+*.tmp
+.import/
+node_modules/
+/tools/node_modules/
+/tools/shots/
+*.translation

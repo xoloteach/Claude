@@ -80,12 +80,6 @@
    "godot": "state"
   },
   {
-   "godot": "teleport 4.5 0.1 -1"
-  },
-  {
-   "godot": "face 90 -5"
-  },
-  {
    "godot": "ai pose aim"
   },
   {
@@ -123,12 +117,6 @@
   },
   {
    "godot": "ai clear"
-  },
-  {
-   "godot": "teleport 0 0.1 4"
-  },
-  {
-   "godot": "face 0 0"
   },
   {
    "godot": "spawn 3"
